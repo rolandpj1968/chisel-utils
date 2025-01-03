@@ -46,8 +46,19 @@ class FullAdderNSpec extends AnyFreeSpec with Matchers {
     }
   }
 
+  // simple adders
   dotest(() => FullAdderN.simple(1), "simple1", 1)
   dotest(() => FullAdderN.simple(3), "simple3", 3)
   dotest(() => FullAdderN.simple(4), "simple4", 4)
   dotest(() => FullAdderN.simple(64), "simple64", 64)
+
+  // carry-select adders
+  dotest(() => FullAdderN.csel(2), "csel2", 2)
+  dotest(() => FullAdderN.csel(5), "csel5", 5)
+  dotest(() => FullAdderN.csel(16), "csel16", 16)
+  dotest(() => FullAdderN.csel(64), "csel64", 64)
+
+  // 2-layer carry-select adder
+  dotest(() => FullAdderN.csel(19, (n: Int) => FullAdderN.csel(n)), "csel19[csel9,csel10]", 19)
+
 }
