@@ -47,16 +47,21 @@ class StackSpec extends AnyFreeSpec with Matchers {
         dut.io.tos.expect(9.U)
         dut.io.nos.expect(7.U)
 
-        // val testValues = for { x <- -3 to 3; y <- -3 to 3; cin <- 0 to 1} yield (bi(x) & mask, bi(y) & mask, cin)
-        // testValues.map { case (x, y, cin) => {
-        //   dut.io.cin.poke(cin.U)
-        //   dut.io.x.poke(x.U)
-        //   dut.io.y.poke(y.U)
-        //   dut.clock.step()
-        //   val sum = x + y + cin
-        //   dut.io.sum.expect((sum & mask).U)
-        //   dut.io.cout.expect( (if (sum > mask) 1 else 0).U)
-        // }}
+        // Push another value
+        dut.io.wEn.poke(1.U)
+        dut.io.nextTos.poke(10.U)
+        dut.io.dItos.poke(1.U)
+        dut.clock.step()
+        dut.io.tos.expect(10.U)
+        dut.io.nos.expect(9.U)
+
+        // Pop a value
+        dut.io.wEn.poke(0.U)
+        dut.io.nextTos.poke(0.U)
+        dut.io.dItos.poke(((1<<order)-1).U)
+        dut.clock.step()
+        dut.io.tos.expect(9.U)
+        dut.io.nos.expect(7.U)
       }
     }
   }

@@ -25,11 +25,12 @@ class Stack(n: Int, order: Int) extends Module {
   val iTos = RegInit(0.U(order.W))
   // TODO: we should calculate this from iTos conbinationally (iTos - 1.U) but that results in
   //   verilator linter errors like https://github.com/verilator/verilator/issues/2070
+  // next-of-stack index
   val iNos = RegInit(((1<<order)-1).U(order.W))
   // stack entries - circular buffer
   val stack = Reg(Vec(size, UInt(n.W)))
 
-  printf("iTos %d iNos %d\n", iTos, iNos)
+  //printf("iTos %d iNos %d\n", iTos, iNos)
 
   io.tos := stack(iTos)
   // val iNos = iTos - 1.U - see TODO above
