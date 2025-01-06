@@ -6,12 +6,12 @@ import chisel3.util._
 object AluOpcode extends ChiselEnum {
   val AluOpcNop =      Value(0x00.U)
   val AluOpcDrop =     Value(0x01.U)
-  val AluOpcAdd1 =     Value(0x02.U)
-  val AluOpcSub1 =     Value(0x03.U)
-  val AluOpcAdd2 =     Value(0x04.U)
-  val AluOpcSub2 =     Value(0x05.U)
-  val AluOpcAdd4 =     Value(0x06.U)
-  val AluOpcSub4 =     Value(0x07.U)
+  // val AluOpcAdd1 =     Value(0x02.U)
+  // val AluOpcSub1 =     Value(0x03.U)
+  // val AluOpcAdd2 =     Value(0x04.U)
+  // val AluOpcSub2 =     Value(0x05.U)
+  // val AluOpcAdd4 =     Value(0x06.U)
+  // val AluOpcSub4 =     Value(0x07.U)
 
   /* Integer Arithmetic XLEN width */
 
@@ -22,10 +22,23 @@ object AluOpcode extends ChiselEnum {
 
   /* Integer add with remote ALU tos (PREVIOUS cycle value) XLEN width */
 
-  val AluOpcAddA0 =    Value(0x0c.U)
-  val AluOpcAddA1 =    Value(0x0d.U)
-  val AluOpcAddA2 =    Value(0x0e.U)
-  val AluOpcAddA3 =    Value(0x0f.U)
+  // val AluOpcAddA0 =    Value(0x0c.U)
+  // val AluOpcAddA1 =    Value(0x0d.U)
+  // val AluOpcAddA2 =    Value(0x0e.U)
+  // val AluOpcAddA3 =    Value(0x0f.U)
+
+  /* Shift Binary - XLEN width */
+
+  val AluOpcSll =      Value(0x10.U)
+  val AluOpcSrl =      Value(0x11.U)
+  val AluOpcSra =      Value(0x12.U)
+
+  /* Bits - XLEN width */
+
+  val AluOpcAnd =      Value(0x14.U)
+  val AluOpcOr =       Value(0x13.U)
+  val AluOpcXor =      Value(0x14.U)
+  val AluOpcNot =      Value(0x15.U)
 
 
   val AluOpcFF   =     Value(0xff.U) // Enforce 8-bit width
@@ -51,6 +64,14 @@ object AluOp extends ChiselEnum {
   val OpNone, OpAdd, OpShift, OpBits, OpExt, OpInv = Value
 }
 
+object ShiftX extends ChiselEnum {
+  val SllX, SrlX, SraX = Value
+}
+
+object BitsX extends ChiselEnum {
+  val AndX, OrX, XorX = Value
+}
+
 class Decoder extends Module {
   import AluOpcode._
   import AluSrc0._
@@ -58,6 +79,8 @@ class Decoder extends Module {
   import Src1LitX._
   import Src1AluX._
   import AluOp._
+  import ShiftX._
+  import BitsX._
 
   val io = IO(new Bundle {
     val opc = Input(AluOpcode())
@@ -81,12 +104,12 @@ class Decoder extends Module {
   switch (io.opc) {
     is (AluOpcNop)   { op := OpNone; }
     is (AluOpcDrop)  { op := OpNone; dITos := 3.U; }
-    is (AluOpcAdd1)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX1.asUInt; wr := true.B; }
-    is (AluOpcSub1)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX1.asUInt; wr := true.B; }
-    is (AluOpcAdd2)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX2.asUInt; wr := true.B; }
-    is (AluOpcSub2)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX2.asUInt; wr := true.B; }
-    is (AluOpcAdd4)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX4.asUInt; wr := true.B; }
-    is (AluOpcSub4)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX4.asUInt; wr := true.B; }
+    // is (AluOpcAdd1)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX1.asUInt; wr := true.B; }
+    // is (AluOpcSub1)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX1.asUInt; wr := true.B; }
+    // is (AluOpcAdd2)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX2.asUInt; wr := true.B; }
+    // is (AluOpcSub2)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX2.asUInt; wr := true.B; }
+    // is (AluOpcAdd4)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX4.asUInt; wr := true.B; }
+    // is (AluOpcSub4)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX4.asUInt; wr := true.B; }
 
     /* Integer Arithmetic XLEN width */
 
@@ -97,10 +120,23 @@ class Decoder extends Module {
 
     /* Integer add with remote ALU tos (PREVIOUS cycle value) XLEN width */
 
-    is (AluOpcAddA0) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX0.asUInt; wr := true.B; }
-    is (AluOpcAddA1) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX1.asUInt; wr := true.B; }
-    is (AluOpcAddA2) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX2.asUInt; wr := true.B; }
-    is (AluOpcAddA3) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX3.asUInt; wr := true.B; }
+    // is (AluOpcAddA0) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX0.asUInt; wr := true.B; }
+    // is (AluOpcAddA1) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX1.asUInt; wr := true.B; }
+    // is (AluOpcAddA2) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX2.asUInt; wr := true.B; }
+    // is (AluOpcAddA3) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX3.asUInt; wr := true.B; }
+
+    /* Shift Binary - XLEN width */
+
+    is (AluOpcSll) { op := OpShift; src0 := Src0Tos; src1 := Src1Nos; xtra := SllX; wr := true.B; dITos := 3.U; }
+    is (AluOpcSrl) { op := OpShift; src0 := Src0Tos; src1 := Src1Nos; xtra := SrlX; wr := true.B; dITos := 3.U; }
+    is (AluOpcSra) { op := OpShift; src0 := Src0Tos; src1 := Src1Nos; xtra := SraX; wr := true.B; dITos := 3.U; }
+
+    /* Bits - XLEN width */
+
+    is (AluOpcAnd) { op := OpBits; src0 := Src0Tos; src1 := Src1Nos; xtra := AndX; wr := true.B; dITos := 3.U; }
+    is (AluOpcOr)  { op := OpBits; src0 := Src0Tos; src1 := Src1Nos; xtra := OrX;  wr := true.B; dITos := 3.U; }
+    is (AluOpcXor) { op := OpBits; src0 := Src0Tos; src1 := Src1Nos; xtra := XorX; wr := true.B; dITos := 3.U; }
+    is (AluOpcNot) { src0 := Src0Tos; src0N := true.B; wr := true.B; }
 
   }
 
