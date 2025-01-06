@@ -1,13 +1,13 @@
 /*
  * Carry-lookahead n-bit full-adder
- * 
+ *
  *   https://en.wikipedia.org/wiki/Carry-lookahead_adder
  */
 
 package org.clanpj.chisel.fulladdern
 
 import chisel3._
-import chisel3.util.{Cat, scanLeftOr}
+import chisel3.util.{Cat, scanRightOr}
 
 class CLookAheadFullAdderN[HiT <: FullAdderN, LoT <: FullAdderN](n: Int, nhi: Int, higen: (Int) => HiT, logen: (Int) => LoT) extends FullAdderN(n) {
   // TODO - make Option'al on ctor param
@@ -28,7 +28,8 @@ class CLookAheadFullAdderN[HiT <: FullAdderN, LoT <: FullAdderN](n: Int, nhi: In
     } else {
       val xory = x | y
       val prop = xory.andR
-      val genr = (scanLeftOr(x & y) | xory).andR
+      val xandy = x & y
+      val genr = (xandy =/= 0.U) & ((scanRightOr(xandy) | xory).andR)
       (prop, genr)
     }
 
@@ -45,7 +46,7 @@ class CLookAheadFullAdderN[HiT <: FullAdderN, LoT <: FullAdderN](n: Int, nhi: In
   val (hix, hiy) = (io.x(n-1, nlo), io.y(n-1, nlo))
   hi.io.x := hix
   hi.io.y := hiy
-  hi.io.cin := logenr | (loprop & io.cin) 
+  hi.io.cin := logenr | (loprop & io.cin)
 
   val (hiprop, higenr) = propgenr(hi, hix, hiy)
 

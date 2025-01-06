@@ -1,6 +1,6 @@
 /*
  * Carry-select n-bit full-adder
- * 
+ *
  *   https://en.wikipedia.org/wiki/Carry-select_adder
  */
 

@@ -33,9 +33,9 @@ object FullAdderN {
   def csel(n: Int): CSelFullAdderN[SimpleFullAdderN, SimpleFullAdderN] = csel(n, n/2, (n: Int) => simple(n))
 
   def clkahd[HiT <: FullAdderN, LoT <: FullAdderN](n: Int, nhi: Int, higen: (Int) => HiT, logen: (Int) => LoT) =
-    new CSelFullAdderN(n, nhi, higen, logen)
-  def clkahd[T <: FullAdderN](n: Int, nhi: Int, gen: (Int) => T): CSelFullAdderN[T,T] = clkahd(n, n/2, gen, gen)
-  def clkahd[T <: FullAdderN](n: Int, gen: (Int) => T): CSelFullAdderN[T,T] = clkahd(n, n/2, gen)
-  def clkahd(n: Int, nhi: Int): CSelFullAdderN[SimpleFullAdderN, SimpleFullAdderN] = clkahd(n, nhi, (n: Int) => simple(n))
-  def clkahd(n: Int): CSelFullAdderN[SimpleFullAdderN, SimpleFullAdderN] = clkahd(n, n/2, (n: Int) => simple(n))
+    new CLookAheadFullAdderN(n, nhi, higen, logen)
+  def clkahd[T <: FullAdderN](n: Int, nhi: Int, gen: (Int) => T): CLookAheadFullAdderN[T,T] = clkahd(n, n/2, gen, gen)
+  def clkahd[T <: FullAdderN](n: Int, gen: (Int) => T): CLookAheadFullAdderN[T,T] = clkahd(n, n/2, gen)
+  def clkahd(n: Int, nhi: Int): CLookAheadFullAdderN[SimpleFullAdderN, SimpleFullAdderN] = clkahd(n, nhi, (n: Int) => simple(n))
+  def clkahd(n: Int): CLookAheadFullAdderN[SimpleFullAdderN, SimpleFullAdderN] = clkahd(n, n/2, (n: Int) => simple(n))
 }
