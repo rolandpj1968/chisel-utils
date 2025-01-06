@@ -13,6 +13,19 @@ object AluOpcode extends ChiselEnum {
   val AluOpcAdd4 =     Value(0x06.U)
   val AluOpcSub4 =     Value(0x07.U)
 
+  /* Integer Arithmetic XLEN width */
+
+  val AluOpcAdd =      Value(0x08.U)
+  val AluOpcSub =      Value(0x09.U)
+  val AluOpcRsub =     Value(0x0a.U)
+  val AluOpcNeg =      Value(0x0b.U)
+
+  /* Integer add with remote ALU tos (PREVIOUS cycle value) XLEN width */
+
+  val AluOpcAddA0 =    Value(0x0c.U)
+  val AluOpcAddA1 =    Value(0x0d.U)
+  val AluOpcAddA2 =    Value(0x0e.U)
+  val AluOpcAddA3 =    Value(0x0f.U)
 
 
   val AluOpcFF   =     Value(0xff.U) // Enforce 8-bit width
@@ -23,11 +36,15 @@ object AluSrc0 extends ChiselEnum {
 }
 
 object AluSrc1 extends ChiselEnum {
-  val Src1None, Src1Nos, Src1Lit = Value
+  val Src1None, Src1Nos, Src1Lit, Src1Alu = Value
 }
 
 object Src1LitX extends ChiselEnum {
   val LitX0, LitX1, LitX2, LitX4 = Value
+}
+
+object Src1AluX extends ChiselEnum {
+  val AluX0, AluX1, AluX2, AluX3 = Value
 }
 
 object AluOp extends ChiselEnum {
@@ -39,6 +56,7 @@ class Decoder extends Module {
   import AluSrc0._
   import AluSrc1._
   import Src1LitX._
+  import Src1AluX._
   import AluOp._
 
   val io = IO(new Bundle {
@@ -61,14 +79,29 @@ class Decoder extends Module {
   val xtra = 0.U(3.W)
 
   switch (io.opc) {
-    is (AluOpcNop)  { op := OpNone; }
-    is (AluOpcDrop) { op := OpNone; dITos := 3.U; }
-    is (AluOpcAdd1) { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX1.asUInt; wr := true.B; }
-    is (AluOpcSub1) { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX1.asUInt; wr := true.B; }
-    is (AluOpcAdd2) { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX2.asUInt; wr := true.B; }
-    is (AluOpcSub2) { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX2.asUInt; wr := true.B; }
-    is (AluOpcAdd4) { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX4.asUInt; wr := true.B; }
-    is (AluOpcSub4) { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX4.asUInt; wr := true.B; }
+    is (AluOpcNop)   { op := OpNone; }
+    is (AluOpcDrop)  { op := OpNone; dITos := 3.U; }
+    is (AluOpcAdd1)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX1.asUInt; wr := true.B; }
+    is (AluOpcSub1)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX1.asUInt; wr := true.B; }
+    is (AluOpcAdd2)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX2.asUInt; wr := true.B; }
+    is (AluOpcSub2)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX2.asUInt; wr := true.B; }
+    is (AluOpcAdd4)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX4.asUInt; wr := true.B; }
+    is (AluOpcSub4)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX4.asUInt; wr := true.B; }
+
+    /* Integer Arithmetic XLEN width */
+
+    is (AluOpcAdd)   { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Nos;                       wr := true.B; dITos := 3.U; }
+    is (AluOpcSub)   { op := OpAdd; src0 := Src0Tos; src0N := true.B; src1 := Src1Nos;                       wr := true.B; dITos := 3.U; }
+    is (AluOpcRsub)  { op := OpAdd; src0 := Src0Tos;                ; src1 := Src1Nos; src1N := true.B;      wr := true.B; dITos := 3.U; }
+    is (AluOpcNeg)   { op := OpAdd; src0 := Src0Tos; src0N := true.B; src1 := Src1Lit; xtra := LitX1.asUInt; wr := true.B; }
+
+    /* Integer add with remote ALU tos (PREVIOUS cycle value) XLEN width */
+
+    is (AluOpcAddA0) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX0.asUInt; wr := true.B; }
+    is (AluOpcAddA1) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX1.asUInt; wr := true.B; }
+    is (AluOpcAddA2) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX2.asUInt; wr := true.B; }
+    is (AluOpcAddA3) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX3.asUInt; wr := true.B; }
+
   }
 
   io.src0 := src0; io.src0N := src0N;
