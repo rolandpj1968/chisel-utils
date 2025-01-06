@@ -1,5 +1,5 @@
 /*
- * Circular stack of size 2^order, of n-bit values
+ * Circular stack of size 2^order; n-bit values
  */
 
 package org.clanpj.chisel.mam.alu.stack
