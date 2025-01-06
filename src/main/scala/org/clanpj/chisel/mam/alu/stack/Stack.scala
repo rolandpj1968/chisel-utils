@@ -16,7 +16,7 @@ class Stack(n: Int, order: Int) extends Module {
   val io = IO(new Bundle {
     val wEn = Input(UInt(1.W))
     val nextTos = Input(UInt(n.W))
-    val dItos = Input(UInt(order.W))
+    val dITos = Input(UInt(order.W))
     val tos = Output(UInt(n.W))
     val nos = Output(UInt(n.W))
   })
@@ -36,8 +36,8 @@ class Stack(n: Int, order: Int) extends Module {
   // val iNos = iTos - 1.U - see TODO above
   io.nos := stack(iNos)
 
-  val iTosNext = iTos + io.dItos
-  val iNosNext = iNos + io.dItos
+  val iTosNext = iTos + io.dITos
+  val iNosNext = iNos + io.dITos
   when (io.wEn(0)) {
     stack(iTosNext) := io.nextTos
   }

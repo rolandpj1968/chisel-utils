@@ -1,6 +1,7 @@
 package org.clanpj.chisel.mam.alu.decode
 
 import chisel3._
+import chisel3.util._
 
 object AluOpcode extends ChiselEnum {
   val AluOpcNop =      Value(0x00.U)
@@ -11,6 +12,7 @@ object AluOpcode extends ChiselEnum {
   val AluOpcSub2 =     Value(0x05.U)
   val AluOpcAdd4 =     Value(0x06.U)
   val AluOpcSub4 =     Value(0x07.U)
+  val AluOpcFF   =     Value(0xff.U) // Enforce 8-bit width
 }
 
 object AluSrc0 extends ChiselEnum {
@@ -22,7 +24,36 @@ object AluSrc1 extends ChiselEnum {
 }
 
 object AluOp extends ChiselEnum {
-  val OpNone, OpAdd, OpShift, OpBits, OpExt = Value
+  val OpNone, OpAdd, OpShift, OpBits, OpExt, OpInv = Value
 }
 
+class Decoder extends Module {
+  import AluOpcode._
+  import AluSrc0._
+  import AluSrc1._
+  import AluOp._
 
+  val io = IO(new Bundle {
+    val opc = Input(AluOpcode())
+    val src0 = Output(AluSrc0())
+    val src0X = Output(UInt(2.W))
+    val src0M = Output(Bool())
+    val src1 = Output(AluSrc1())
+    val src1X = Output(UInt(2.W))
+    val src1M = Output(Bool())
+    val op = Output(AluOp())
+    val subop = Output(UInt(3.W))
+    val wr = Output(Bool())
+    val dItos = Output(UInt(2.W))
+  })
+
+  val src0 = Src0None; val src0X = 0.U(2.W); val src0M = false.B;
+  val src1 = Src1None; val src1X = 0.U(2.W); val src1M = false.B;
+  val op = OpInv; val subop = 0.U(3.W)
+  val wr = false.B
+  val dITos = 0.U(2.W)
+
+  switch (io.opc) {
+    is (AluOpcNop) { op := OpNone; }
+  }
+}
