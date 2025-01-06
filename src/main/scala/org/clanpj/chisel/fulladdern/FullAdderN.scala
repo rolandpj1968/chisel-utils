@@ -7,6 +7,8 @@ package org.clanpj.chisel.fulladdern
 import chisel3._
 
 abstract class FullAdderN(n: Int) extends Module {
+  assert(n > 0)
+
   val io = IO(new Bundle {
     val cin = Input(UInt(1.W))
     val x = Input(UInt(n.W))
@@ -14,8 +16,6 @@ abstract class FullAdderN(n: Int) extends Module {
     val sum = Output(UInt(n.W))
     val cout = Output(UInt(1.W))
   })
-
-  assert(n > 0)
 
   def width = n
 
