@@ -1,8 +1,8 @@
 /*
- * Circular stack of size 2^order
+ * Circular stack of size 2^order, of n-bit values
  */
 
-package org.clanpj.chisel.mam.stack
+package org.clanpj.chisel.mam.alu.stack
 
 import chisel3._
 
