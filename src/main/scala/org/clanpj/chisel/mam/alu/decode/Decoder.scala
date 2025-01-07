@@ -177,6 +177,7 @@ class Decoder extends Module {
     val src1X = Output(UInt(3.W))
     val fwd = Output(Bool())
     val res = Output(Bool())
+    val wr = Output(Bool()) // reg write - reg number in src1X
     val dITos = Output(UInt(2.W))
   })
 
@@ -185,6 +186,7 @@ class Decoder extends Module {
   val src1 = Src1None; val src1N = false.B; val src1X = 0.U;
   val fwd = false.B
   val res = false.B
+  val wr = false.B
   val dITos = 0.U(2.W)
 
   switch (io.opc) {
@@ -265,16 +267,16 @@ class Decoder extends Module {
     is (AluOpcRdR3)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX3; res := true.B; dITos := 1.U; }
 
     /* Register write popping */
-    is (AluOpcWpR0)   {}
-    is (AluOpcWpR1)   {}
-    is (AluOpcWpR2)   {}
-    is (AluOpcWpR3)   {}
+    is (AluOpcWpR0)   { unit := UnitNone; wr := true.B; src1X := RegX0; dITos := 3.U }
+    is (AluOpcWpR1)   { unit := UnitNone; wr := true.B; src1X := RegX1; dITos := 3.U }
+    is (AluOpcWpR2)   { unit := UnitNone; wr := true.B; src1X := RegX2; dITos := 3.U }
+    is (AluOpcWpR3)   { unit := UnitNone; wr := true.B; src1X := RegX3; dITos := 3.U }
 
     /* Register write non-popping */
-    is (AluOpcWrR0)   {}
-    is (AluOpcWrR1)   {}
-    is (AluOpcWrR2)   {}
-    is (AluOpcWrR3)   {}
+    is (AluOpcWrR0)   { unit := UnitNone; wr := true.B; src1X := RegX0; }
+    is (AluOpcWrR1)   { unit := UnitNone; wr := true.B; src1X := RegX1; }
+    is (AluOpcWrR2)   { unit := UnitNone; wr := true.B; src1X := RegX2; }
+    is (AluOpcWrR3)   { unit := UnitNone; wr := true.B; src1X := RegX3; }
 
   /* Remote alu TOS access (LAST cycle result) */
     is (AluOpcRdA0)   {}
@@ -301,5 +303,6 @@ class Decoder extends Module {
   io.src1 := src1; io.src1N := src1N; io.src1X := src1X
   io.fwd := fwd
   io.res := res
+  io.wr := wr
   io.dITos := dITos
 }
