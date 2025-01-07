@@ -1,4 +1,4 @@
-package org.clanpj.chisel.mam.alu.decode
+package org.clanpj.chisel.mam.alu
 
 import chisel3._
 import chisel3.util._
@@ -252,6 +252,7 @@ class Decoder extends Module {
   selz := false.B
   dITos := 0.U(2.W)
 
+  // TODO - greatly simplify
   switch (io.opc) {
     is (AluOpcNop)   { unit := UnitNone; }
     is (AluOpcDrop)  { unit := UnitNone; dITos := 3.U; }

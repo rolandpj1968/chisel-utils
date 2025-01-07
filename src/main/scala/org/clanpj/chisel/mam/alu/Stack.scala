@@ -2,7 +2,7 @@
  * Circular stack of size 2^order; n-bit values
  */
 
-package org.clanpj.chisel.mam.alu.stack
+package org.clanpj.chisel.mam.alu
 
 import chisel3._
 

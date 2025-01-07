@@ -1,4 +1,4 @@
-package org.clanpj.chisel.mam.alu.stack
+package org.clanpj.chisel.mam.alu
 
 import chisel3._
 import chisel3.experimental.BundleLiterals._

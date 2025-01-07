@@ -2,7 +2,7 @@
  * Single r/w port register file of size 2^order; n-bit values
  */
 
-package org.clanpj.chisel.mam.alu.regfile
+package org.clanpj.chisel.mam.alu
 
 import chisel3._
 
