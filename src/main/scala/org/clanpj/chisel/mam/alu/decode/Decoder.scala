@@ -2,6 +2,8 @@ package org.clanpj.chisel.mam.alu.decode
 
 import chisel3._
 import chisel3.util._
+// _root_ disambiguates from package chisel3.util.circt if user imports chisel3.util._
+import _root_.circt.stage.ChiselStage
 
 object AluOpcode extends ChiselEnum {
   val AluOpcNop =      Value(0x00.U)
@@ -36,9 +38,9 @@ object AluOpcode extends ChiselEnum {
   /* Bits - XLEN width */
 
   val AluOpcAnd =      Value(0x14.U)
-  val AluOpcOr =       Value(0x13.U)
-  val AluOpcXor =      Value(0x14.U)
-  val AluOpcNot =      Value(0x15.U)
+  val AluOpcOr =       Value(0x15.U)
+  val AluOpcXor =      Value(0x16.U)
+  val AluOpcNot =      Value(0x17.U)
 
   /* Comparisons - XLEN width */
 
@@ -150,8 +152,9 @@ object AluOpcode extends ChiselEnum {
   val AluOpcFF   =     Value(0xff.U) // Enforce 8-bit width
 }
 
+// Note: sel[n]z is 3-operand; third operand is ALU number in src1X
 object AluUnit extends ChiselEnum {
-  val UnitNone, UnitSrc1, UnitAdd, UnitShift, UnitBits, UnitExt, UnitInv = Value
+  val UnitNone, UnitSrc1, UnitAdd, UnitShift, UnitBits, UnitExt, UnitSel, UnitInv = Value
 }
 
 object AdderOp extends ChiselEnum {
@@ -172,7 +175,7 @@ object ExtOp extends ChiselEnum {
 }
 
 object AluSrc1 extends ChiselEnum {
-  val Src1None, Src1Nos, Src1Lit, Src1Alu, Src1Stk, Src1Reg, Src1Con = Value
+  val Src1Nos, Src1Lit, Src1Alu, Src1Stk, Src1Reg, Src1Con = Value
 }
 
 object Src1LitX extends ChiselEnum {
@@ -215,18 +218,17 @@ class Decoder extends Module {
     val fw = Output(Bool()) // forward this cycle result - alu number in src1X
     val res = Output(Bool())
     val wr = Output(Bool()) // reg write - reg number in src1X
-    val sel = Output(Bool()) // 3-operand; third operand is ALU number in src1X
     val selz = Output(Bool())
     val dITos = Output(UInt(2.W))
   })
 
   val unit = UnitInv; val op = 0.U(5.W)
   val src0N = false.B;
-  val src1 = Src1None; val src1N = false.B; val src1X = 0.U;
+  val src1 = Src1Nos; val src1N = false.B; val src1X = 0.U;
   val fw = false.B
   val res = false.B
   val wr = false.B
-  val sel = false.B; val selz = false.B
+  val selz = false.B
   val dITos = 0.U(2.W)
 
   switch (io.opc) {
@@ -336,6 +338,42 @@ class Decoder extends Module {
     is (AluOpcRdM1v0) {}
     is (AluOpcRdM1v1) {}
 
+    /* Select using remote alu condition (LAST cycle value) */
+    is (AluOpcSelzA0)  { unit := UnitSel; selz := true.B;  src1X := AluX0; res := true.B; dITos := 3.U; }
+    is (AluOpcSelzA1)  { unit := UnitSel; selz := true.B;  src1X := AluX1; res := true.B; dITos := 3.U; }
+    is (AluOpcSelzA2)  { unit := UnitSel; selz := true.B;  src1X := AluX2; res := true.B; dITos := 3.U; }
+    is (AluOpcSelzA3)  { unit := UnitSel; selz := true.B;  src1X := AluX3; res := true.B; dITos := 3.U; }
+    is (AluOpcSelnzA0) { unit := UnitSel; selz := false.B; src1X := AluX0; res := true.B; dITos := 3.U; }
+    is (AluOpcSelnzA1) { unit := UnitSel; selz := false.B; src1X := AluX1; res := true.B; dITos := 3.U; }
+    is (AluOpcSelnzA2) { unit := UnitSel; selz := false.B; src1X := AluX2; res := true.B; dITos := 3.U; }
+    is (AluOpcSelnzA3) { unit := UnitSel; selz := false.B; src1X := AluX3; res := true.B; dITos := 3.U; }
+
+    /* Icache constants */
+
+    is (AluOpcConb0) {}
+    is (AluOpcConb1) {}
+    is (AluOpcConb2) {}
+    is (AluOpcConb3) {}
+    is (AluOpcConb4) {}
+    is (AluOpcConb5) {}
+    is (AluOpcConb6) {}
+    is (AluOpcConb7) {}
+    is (AluOpcConh0) {}
+    is (AluOpcConh1) {}
+    is (AluOpcConh2) {}
+    is (AluOpcConh3) {}
+    is (AluOpcConh4) {}
+    is (AluOpcConh5) {}
+    is (AluOpcConh6) {}
+    is (AluOpcConh7) {}
+    is (AluOpcConw0) {}
+    is (AluOpcConw1) {}
+    is (AluOpcConw2) {}
+    is (AluOpcConw3) {}
+    is (AluOpcConw4) {}
+    is (AluOpcConw5) {}
+    is (AluOpcConw6) {}
+    is (AluOpcConw7) {}
   }
 
   io.unit := unit; io.op := op;
@@ -344,6 +382,16 @@ class Decoder extends Module {
   io.fw := fw
   io.res := res
   io.wr := wr
-  io.sel := sel; io.selz := selz;
+  io.selz := selz;
   io.dITos := dITos
+}
+
+/**
+ * Generate Verilog sources and save it in file Decoder.sv
+ */
+object Decoder extends App {
+  ChiselStage.emitSystemVerilogFile(
+    new Decoder,
+    firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info")
+  )
 }
