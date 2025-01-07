@@ -150,6 +150,10 @@ object Src1StkX extends ChiselEnum {
   val StkX0, StkX1, StkX2, StkX3 = Value
 }
 
+object Src1RegX extends ChiselEnum {
+  val RegX0, RegX1, RegX2, RegX3 = Value
+}
+
 class Decoder extends Module {
   import AluOpcode._
   import AluUnit._
@@ -161,6 +165,7 @@ class Decoder extends Module {
   import Src1LitX._
   import Src1AluX._
   import Src1StkX._
+  import Src1RegX._
 
   val io = IO(new Bundle {
     val opc = Input(AluOpcode())
@@ -254,10 +259,10 @@ class Decoder extends Module {
     is (AluOpcRdS3)   { unit := UnitSrc1; src1 := Src1Stk; src1X := StkX3; res := true.B; dITos := 1.U; }
 
     /* Register read */
-    is (AluOpcRdR0)   {}
-    is (AluOpcRdR1)   {}
-    is (AluOpcRdR2)   {}
-    is (AluOpcRdR3)   {}
+    is (AluOpcRdR0)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX0; res := true.B; dITos := 1.U; }
+    is (AluOpcRdR1)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX1; res := true.B; dITos := 1.U; }
+    is (AluOpcRdR2)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX2; res := true.B; dITos := 1.U; }
+    is (AluOpcRdR3)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX3; res := true.B; dITos := 1.U; }
 
     /* Register write popping */
     is (AluOpcWpR0)   {}
