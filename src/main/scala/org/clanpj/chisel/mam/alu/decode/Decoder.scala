@@ -110,6 +110,43 @@ object AluOpcode extends ChiselEnum {
   val AluOpcRdM1v0 =   Value(0x52.U)
   val AluOpcRdM1v1 =   Value(0x53.U)
 
+  /* Select using remote alu condition (LAST cycle value) */
+  val AluOpcSelzA0 =   Value(0x60.U)
+  val AluOpcSelzA1 =   Value(0x61.U)
+  val AluOpcSelzA2 =   Value(0x62.U)
+  val AluOpcSelzA3 =   Value(0x63.U)
+  val AluOpcSelnzA0 =  Value(0x64.U)
+  val AluOpcSelnzA1 =  Value(0x65.U)
+  val AluOpcSelnzA2 =  Value(0x66.U)
+  val AluOpcSelnzA3 =  Value(0x67.U)
+
+  /* Icache constants */
+
+  val AluOpcConb0 =    Value(0x68.U)
+  val AluOpcConb1 =    Value(0x69.U)
+  val AluOpcConb2 =    Value(0x6a.U)
+  val AluOpcConb3 =    Value(0x6b.U)
+  val AluOpcConb4 =    Value(0x6c.U)
+  val AluOpcConb5 =    Value(0x6d.U)
+  val AluOpcConb6 =    Value(0x6e.U)
+  val AluOpcConb7 =    Value(0x6f.U)
+  val AluOpcConh0 =    Value(0x70.U)
+  val AluOpcConh1 =    Value(0x71.U)
+  val AluOpcConh2 =    Value(0x72.U)
+  val AluOpcConh3 =    Value(0x73.U)
+  val AluOpcConh4 =    Value(0x74.U)
+  val AluOpcConh5 =    Value(0x75.U)
+  val AluOpcConh6 =    Value(0x76.U)
+  val AluOpcConh7 =    Value(0x77.U)
+  val AluOpcConw0 =    Value(0x78.U)
+  val AluOpcConw1 =    Value(0x79.U)
+  val AluOpcConw2 =    Value(0x7a.U)
+  val AluOpcConw3 =    Value(0x7b.U)
+  val AluOpcConw4 =    Value(0x7c.U)
+  val AluOpcConw5 =    Value(0x7d.U)
+  val AluOpcConw6 =    Value(0x7e.U)
+  val AluOpcConw7 =    Value(0x7f.U)
+
   val AluOpcFF   =     Value(0xff.U) // Enforce 8-bit width
 }
 
@@ -178,6 +215,8 @@ class Decoder extends Module {
     val fw = Output(Bool()) // forward this cycle result - alu number in src1X
     val res = Output(Bool())
     val wr = Output(Bool()) // reg write - reg number in src1X
+    val sel = Output(Bool()) // 3-operand; third operand is ALU number in src1X
+    val selz = Output(Bool())
     val dITos = Output(UInt(2.W))
   })
 
@@ -187,6 +226,7 @@ class Decoder extends Module {
   val fw = false.B
   val res = false.B
   val wr = false.B
+  val sel = false.B; val selz = false.B
   val dITos = 0.U(2.W)
 
   switch (io.opc) {
@@ -300,9 +340,10 @@ class Decoder extends Module {
 
   io.unit := unit; io.op := op;
   io.src0N := src0N;
-  io.src1 := src1; io.src1N := src1N; io.src1X := src1X
+  io.src1 := src1; io.src1N := src1N; io.src1X := src1X;
   io.fw := fw
   io.res := res
   io.wr := wr
+  io.sel := sel; io.selz := selz;
   io.dITos := dITos
 }
