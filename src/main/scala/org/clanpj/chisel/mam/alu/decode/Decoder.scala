@@ -278,19 +278,19 @@ class Decoder extends Module {
     is (AluOpcWrR2)   { unit := UnitNone; wr := true.B; src1X := RegX2; }
     is (AluOpcWrR3)   { unit := UnitNone; wr := true.B; src1X := RegX3; }
 
-  /* Remote alu TOS access (LAST cycle result) */
-    is (AluOpcRdA0)   {}
-    is (AluOpcRdA1)   {}
-    is (AluOpcRdA2)   {}
-    is (AluOpcRdA3)   {}
+    /* Remote alu TOS access (LAST cycle result) */
+    is (AluOpcRdA0)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX0; res := true.B; dITos := 1.U; }
+    is (AluOpcRdA1)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX1; res := true.B; dITos := 1.U; }
+    is (AluOpcRdA2)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX2; res := true.B; dITos := 1.U; }
+    is (AluOpcRdA3)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX3; res := true.B; dITos := 1.U; }
 
-  /* Remote alu TOS access (THIS cycle result forwarded) */
+    /* Remote alu TOS access (THIS cycle result forwarded) */
     is (AluOpcFwA0)   {}
     is (AluOpcFwA1)   {}
     is (AluOpcFwA2)   {}
     is (AluOpcFwA3)   {}
 
-  /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
+    /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
     is (AluOpcRdM0v0) {}
     is (AluOpcRdM0v1) {}
     is (AluOpcRdM1v0) {}
