@@ -61,6 +61,58 @@ object AluOpcode extends ChiselEnum {
   val AluOpcSeqA2 =    Value(0x26.U)
   val AluOpcSeqA3 =    Value(0x27.U)
 
+  /* Extensions and Truncations */
+
+  val AluOpcExtb =     Value(0x30.U)
+  val AluOpcExtub =    Value(0x31.U)
+  val AluOpcExth =     Value(0x32.U)
+  val AluOpcExtuh =    Value(0x33.U)
+
+  val AluOpcExtw =     Value(0x34.U)
+  val AluOpcExtuw =    Value(0x35.U)
+
+  /* Stack read */
+  val AluOpcRdS0 =     Value(0x38.U)
+  val AluOpcRdS1 =     Value(0x39.U)
+  val AluOpcRdS2 =     Value(0x3a.U)
+  val AluOpcRdS3 =     Value(0x3b.U)
+
+  /* Register read */
+  val AluOpcRdR0 =     Value(0x3c.U)
+  val AluOpcRdR1 =     Value(0x3d.U)
+  val AluOpcRdR2 =     Value(0x3e.U)
+  val AluOpcRdR3 =     Value(0x3f.U)
+
+  /* Register write popping */
+  val AluOpcWpR0 =     Value(0x40.U)
+  val AluOpcWpR1 =     Value(0x41.U)
+  val AluOpcWpR2 =     Value(0x42.U)
+  val AluOpcWpR3 =     Value(0x43.U)
+
+  /* Register write non-popping */
+  val AluOpcWrR0 =     Value(0x44.U)
+  val AluOpcWrR1 =     Value(0x45.U)
+  val AluOpcWrR2 =     Value(0x46.U)
+  val AluOpcWrR3 =     Value(0x47.U)
+
+  /* Remote alu TOS access (LAST cycle result) */
+  val AluOpcRdA0 =     Value(0x48.U)
+  val AluOpcRdA1 =     Value(0x49.U)
+  val AluOpcRdA2 =     Value(0x4a.U)
+  val AluOpcRdA3 =     Value(0x4b.U)
+
+  /* Remote alu TOS access (THIS cycle result forwarded) */
+  val AluOpcFwA0 =     Value(0x4c.U)
+  val AluOpcFwA1 =     Value(0x4d.U)
+  val AluOpcFwA2 =     Value(0x4e.U)
+  val AluOpcFwA3 =     Value(0x4f.U)
+
+  /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
+  val AluOpcRdM0v0 =   Value(0x50.U)
+  val AluOpcRdM0v1 =   Value(0x51.U)
+  val AluOpcRdM1v0 =   Value(0x52.U)
+  val AluOpcRdM1v1 =   Value(0x53.U)
+
   val AluOpcFF   =     Value(0xff.U) // Enforce 8-bit width
 }
 
