@@ -135,7 +135,7 @@ object ExtOp extends ChiselEnum {
 }
 
 object AluSrc1 extends ChiselEnum {
-  val Src1None, Src1Nos, Src1Lit, Src1Alu, Src1Stk, Src1Reg, Src1Fwd, Src1Con = Value
+  val Src1None, Src1Nos, Src1Lit, Src1Alu, Src1Stk, Src1Reg, Src1Con = Value
 }
 
 object Src1LitX extends ChiselEnum {
@@ -175,7 +175,7 @@ class Decoder extends Module {
     val src1 = Output(AluSrc1())
     val src1N = Output(Bool())
     val src1X = Output(UInt(3.W))
-    val fwd = Output(Bool())
+    val fw = Output(Bool()) // forward this cycle result - alu number in src1X
     val res = Output(Bool())
     val wr = Output(Bool()) // reg write - reg number in src1X
     val dITos = Output(UInt(2.W))
@@ -184,7 +184,7 @@ class Decoder extends Module {
   val unit = UnitInv; val op = 0.U(5.W)
   val src0N = false.B;
   val src1 = Src1None; val src1N = false.B; val src1X = 0.U;
-  val fwd = false.B
+  val fw = false.B
   val res = false.B
   val wr = false.B
   val dITos = 0.U(2.W)
@@ -285,13 +285,13 @@ class Decoder extends Module {
     is (AluOpcRdA3)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX3; res := true.B; dITos := 1.U; }
 
     /* Remote alu TOS access (THIS cycle result forwarded) */
-    is (AluOpcFwA0)   {}
-    is (AluOpcFwA1)   {}
-    is (AluOpcFwA2)   {}
-    is (AluOpcFwA3)   {}
+    is (AluOpcFwA0)   { unit := UnitNone; fw := true.B; src1X := AluX0; res := true.B; dITos := 1.U; }
+    is (AluOpcFwA1)   { unit := UnitNone; fw := true.B; src1X := AluX0; res := true.B; dITos := 1.U; }
+    is (AluOpcFwA2)   { unit := UnitNone; fw := true.B; src1X := AluX0; res := true.B; dITos := 1.U; }
+    is (AluOpcFwA3)   { unit := UnitNone; fw := true.B; src1X := AluX0; res := true.B; dITos := 1.U; }
 
     /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
-    is (AluOpcRdM0v0) {}
+    is (AluOpcRdM0v0) {} // TODO
     is (AluOpcRdM0v1) {}
     is (AluOpcRdM1v0) {}
     is (AluOpcRdM1v1) {}
@@ -301,7 +301,7 @@ class Decoder extends Module {
   io.unit := unit; io.op := op;
   io.src0N := src0N;
   io.src1 := src1; io.src1N := src1N; io.src1X := src1X
-  io.fwd := fwd
+  io.fw := fw
   io.res := res
   io.wr := wr
   io.dITos := dITos
