@@ -14,11 +14,12 @@ class Stack(n: Int, order: Int) extends Module {
   val size = 1 << order
 
   val io = IO(new Bundle {
-    val wEn = Input(UInt(1.W))
-    val nextTos = Input(UInt(n.W))
+    val wEn = Input(Bool())
+    val newTosV = Input(UInt(n.W))
     val dITos = Input(UInt(order.W))
-    val tos = Output(UInt(n.W))
-    val nos = Output(UInt(n.W))
+    val tosV = Output(UInt(n.W))
+    val nosV = Output(UInt(n.W))
+    val tosVNext = Output(UInt(n.W))
   })
 
   // top-of-stack index; full stack
@@ -32,14 +33,17 @@ class Stack(n: Int, order: Int) extends Module {
 
   //printf("iTos %d iNos %d\n", iTos, iNos)
 
-  io.tos := stack(iTos)
+  io.tosV := stack(iTos)
   // val iNos = iTos - 1.U - see TODO above
-  io.nos := stack(iNos)
+  io.nosV := stack(iNos)
 
   val iTosNext = iTos + io.dITos
   val iNosNext = iNos + io.dITos
-  when (io.wEn(0)) {
-    stack(iTosNext) := io.nextTos
+
+  io.tosVNext := stack(iTosNext)
+
+  when (io.wEn) {
+    stack(iTosNext) := io.newTosV
   }
 
   iTos := iTosNext

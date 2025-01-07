@@ -220,7 +220,7 @@ class Decoder extends Module {
   import Src1ConX._
 
   val io = IO(new Bundle {
-    val opc = Input(AluOpcode())
+    val opcRaw = Input(UInt(8.W))
     val unit = Output(AluUnit())
     val op = Output(UInt(5.W))
     val src0N = Output(Bool())
@@ -233,6 +233,9 @@ class Decoder extends Module {
     val selz = Output(Bool())
     val dITos = Output(UInt(2.W))
   })
+
+  // Ignore validity - range with extensions is larger
+  val (opc, valid) = AluOpcode.safe(io.opcRaw)
 
   val unit = Wire(AluUnit()); val op = Wire(UInt(5.W))
   val src0N = Wire(Bool())
@@ -253,7 +256,7 @@ class Decoder extends Module {
   dITos := 0.U(2.W)
 
   // TODO - greatly simplify
-  switch (io.opc) {
+  switch (opc) {
     is (AluOpcNop)   { unit := UnitNone; }
     is (AluOpcDrop)  { unit := UnitNone; dITos := 3.U; }
     is (AluOpcAdd1)  { unit := UnitAdd; op := AddOp.asUInt; src1 := Src1Lit;                  src1X := LitX1.asUInt; res := true.B; }
@@ -411,9 +414,9 @@ class Decoder extends Module {
 /**
  * Generate Verilog sources and save it in file Decoder.sv
  */
-object Decoder extends App {
-  ChiselStage.emitSystemVerilogFile(
-    new Decoder,
-    firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info")
-  )
-}
+// object Decoder extends App {
+//   ChiselStage.emitSystemVerilogFile(
+//     new Decoder,
+//     firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info")
+//   )
+// }
