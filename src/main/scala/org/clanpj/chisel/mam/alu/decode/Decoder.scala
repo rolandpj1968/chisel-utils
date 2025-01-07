@@ -64,12 +64,25 @@ object AluOpcode extends ChiselEnum {
   val AluOpcFF   =     Value(0xff.U) // Enforce 8-bit width
 }
 
-object AluSrc0 extends ChiselEnum {
-  val Src0None, Src0Tos, Src0Stk, Src0Reg, Src0Fwd, Src0Con = Value
+object AluUnit extends ChiselEnum {
+  val UnitNone, UnitSrc1, UnitAdd, UnitShift, UnitBits, UnitExt, UnitInv = Value
+}
+
+object AdderOp extends ChiselEnum {
+  val AddOp, SltOp, SltuOp = Value
+}
+
+object ShiftOp extends ChiselEnum {
+  val SllOp, SrlOp, SraOp = Value
+}
+
+// XorZ for seq*
+object BitsOp extends ChiselEnum {
+  val AndOp, OrOp, XorOp, XorZOp = Value
 }
 
 object AluSrc1 extends ChiselEnum {
-  val Src1None, Src1Nos, Src1Lit, Src1Alu = Value
+  val Src1None, /*Src0Tos, needed?*/ Src1Nos, Src1Lit, Src1Alu, Src0Stk, Src0Reg, Src0Fwd, Src0Con = Value
 }
 
 object Src1LitX extends ChiselEnum {
@@ -80,114 +93,99 @@ object Src1AluX extends ChiselEnum {
   val AluX0, AluX1, AluX2, AluX3 = Value
 }
 
-object AluOp extends ChiselEnum {
-  val OpNone, OpAdd, OpSlt, OpSltu, OpShift, OpBits, OpExt, OpInv = Value
-}
-
-object ShiftX extends ChiselEnum {
-  val SllX, SrlX, SraX = Value
-}
-
-// XorZ for seq*
-object BitsX extends ChiselEnum {
-  val AndX, OrX, XorX, XorZX = Value
-}
-
-
 class Decoder extends Module {
   import AluOpcode._
-  import AluSrc0._
+  import AluUnit._
+  import AdderOp._
+  import ShiftOp._
+  import BitsOp._
   import AluSrc1._
   import Src1LitX._
   import Src1AluX._
-  import AluOp._
-  import ShiftX._
-  import BitsX._
 
   val io = IO(new Bundle {
     val opc = Input(AluOpcode())
-    val src0 = Output(AluSrc0())
+    val unit = Output(AluUnit())
+    val op = Output(UInt(5.W))
     val src0N = Output(Bool())
     val src1 = Output(AluSrc1())
     val src1N = Output(Bool())
-    val op = Output(AluOp())
+    val src1X = Output(UInt(3.W))
     val fwd = Output(Bool())
     val wr = Output(Bool())
     val dITos = Output(UInt(2.W))
-    val xtra = Output(UInt(3.W)) // Src1LitX, 
   })
 
-  val src0 = Src0None; val src0N = false.B;
-  val src1 = Src1None; val src1N = false.B;
-  val op = OpInv
+  val unit = UnitInv; val op = 0.U(5.W)
+  val src0N = false.B;
+  val src1 = Src1None; val src1N = false.B; val src1X = 0.U;
   val fwd = false.B
   val wr = false.B
   val dITos = 0.U(2.W)
-  val xtra = 0.U(3.W)
 
   switch (io.opc) {
-    is (AluOpcNop)   { op := OpNone; }
-    is (AluOpcDrop)  { op := OpNone; dITos := 3.U; }
-    is (AluOpcAdd1)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX1.asUInt; wr := true.B; }
-    is (AluOpcSub1)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX1.asUInt; wr := true.B; }
-    is (AluOpcAdd2)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX2.asUInt; wr := true.B; }
-    is (AluOpcSub2)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX2.asUInt; wr := true.B; }
-    is (AluOpcAdd4)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit;                  xtra := LitX4.asUInt; wr := true.B; }
-    is (AluOpcSub4)  { op := OpAdd; src0 := Src0Tos; src1 := Src1Lit; src1N := true.B; xtra := LitX4.asUInt; wr := true.B; }
+    is (AluOpcNop)   { unit := UnitNone; }
+    is (AluOpcDrop)  { unit := UnitNone; dITos := 3.U; }
+    is (AluOpcAdd1)  { unit := UnitAdd; op := AddOp; src1 := Src1Lit;                  src1X := LitX1; wr := true.B; }
+    is (AluOpcSub1)  { unit := UnitAdd; op := AddOp; src1 := Src1Lit; src1N := true.B; src1X := LitX1; wr := true.B; }
+    is (AluOpcAdd2)  { unit := UnitAdd; op := AddOp; src1 := Src1Lit;                  src1X := LitX2; wr := true.B; }
+    is (AluOpcSub2)  { unit := UnitAdd; op := AddOp; src1 := Src1Lit; src1N := true.B; src1X := LitX2; wr := true.B; }
+    is (AluOpcAdd4)  { unit := UnitAdd; op := AddOp; src1 := Src1Lit;                  src1X := LitX4; wr := true.B; }
+    is (AluOpcSub4)  { unit := UnitAdd; op := AddOp; src1 := Src1Lit; src1N := true.B; src1X := LitX4; wr := true.B; }
 
     /* Integer Arithmetic XLEN width */
 
-    is (AluOpcAdd)   { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Nos;                       wr := true.B; dITos := 3.U; }
-    is (AluOpcSub)   { op := OpAdd; src0 := Src0Tos;                ; src1 := Src1Nos; src1N := true.B;      wr := true.B; dITos := 3.U; }
-    is (AluOpcRsub)  { op := OpAdd; src0 := Src0Tos; src0N := true.B; src1 := Src1Nos;                       wr := true.B; dITos := 3.U; }
-    is (AluOpcNeg)   { op := OpAdd; src0 := Src0Tos; src0N := true.B; src1 := Src1Lit; xtra := LitX0.asUInt; wr := true.B; }
+    is (AluOpcAdd)   { unit := UnitAdd; op := AddOp;                  src1 := Src1Nos;                        wr := true.B; dITos := 3.U; }
+    is (AluOpcSub)   { unit := UnitAdd; op := AddOp;                ; src1 := Src1Nos; src1N := true.B;       wr := true.B; dITos := 3.U; }
+    is (AluOpcRsub)  { unit := UnitAdd; op := AddOp; src0N := true.B; src1 := Src1Nos;                        wr := true.B; dITos := 3.U; }
+    is (AluOpcNeg)   { unit := UnitAdd; op := AddOp; src0N := true.B; src1 := Src1Lit; src1X := LitX0; wr := true.B; }
 
     /* Integer add with remote ALU tos (PREVIOUS cycle value) XLEN width */
 
-    is (AluOpcAddA0) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX0.asUInt; wr := true.B; }
-    is (AluOpcAddA1) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX1.asUInt; wr := true.B; }
-    is (AluOpcAddA2) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX2.asUInt; wr := true.B; }
-    is (AluOpcAddA3) { op := OpAdd; src0 := Src0Tos;                  src1 := Src1Alu; xtra := AluX3.asUInt; wr := true.B; }
+    is (AluOpcAddA0) { unit := UnitAdd; op := AddOp;                  src1 := Src1Alu; src1X := AluX0; wr := true.B; }
+    is (AluOpcAddA1) { unit := UnitAdd; op := AddOp;                  src1 := Src1Alu; src1X := AluX1; wr := true.B; }
+    is (AluOpcAddA2) { unit := UnitAdd; op := AddOp;                  src1 := Src1Alu; src1X := AluX2; wr := true.B; }
+    is (AluOpcAddA3) { unit := UnitAdd; op := AddOp;                  src1 := Src1Alu; src1X := AluX3; wr := true.B; }
 
     /* Shift Binary - XLEN width */
 
-    is (AluOpcSll) { op := OpShift; src0 := Src0Tos; src1 := Src1Nos; xtra := SllX; wr := true.B; dITos := 3.U; }
-    is (AluOpcSrl) { op := OpShift; src0 := Src0Tos; src1 := Src1Nos; xtra := SrlX; wr := true.B; dITos := 3.U; }
-    is (AluOpcSra) { op := OpShift; src0 := Src0Tos; src1 := Src1Nos; xtra := SraX; wr := true.B; dITos := 3.U; }
+    is (AluOpcSll) { unit := UnitShift; op := SllOp; src1 := Src1Nos; wr := true.B; dITos := 3.U; }
+    is (AluOpcSrl) { unit := UnitShift; op := SrlOp; src1 := Src1Nos; wr := true.B; dITos := 3.U; }
+    is (AluOpcSra) { unit := UnitShift; op := SraOp; src1 := Src1Nos; wr := true.B; dITos := 3.U; }
 
     /* Bits - XLEN width */
 
-    is (AluOpcAnd) { op := OpBits; src0 := Src0Tos; src1 := Src1Nos; xtra := AndX; wr := true.B; dITos := 3.U; }
-    is (AluOpcOr)  { op := OpBits; src0 := Src0Tos; src1 := Src1Nos; xtra := OrX;  wr := true.B; dITos := 3.U; }
-    is (AluOpcXor) { op := OpBits; src0 := Src0Tos; src1 := Src1Nos; xtra := XorX; wr := true.B; dITos := 3.U; }
-    is (AluOpcNot) { src0 := Src0Tos; src0N := true.B; wr := true.B; }
+    is (AluOpcAnd) { unit := UnitBits; op := AndOp; src1 := Src1Nos; wr := true.B; dITos := 3.U; }
+    is (AluOpcOr)  { unit := UnitBits; op := OrOp;  src1 := Src1Nos; wr := true.B; dITos := 3.U; }
+    is (AluOpcXor) { unit := UnitBits; op := XorOp; src1 := Src1Nos; wr := true.B; dITos := 3.U; }
+    is (AluOpcNot) { unit := UnitNone; src0N := true.B; wr := true.B; }
 
     /* Comparisons - XLEN width */
 
-    is (AluOpcSlt)  { op := OpSlt;  src0 := Src0Tos; src1 := Src1Nos; src1N := true.B; wr := true.B; dITos := 3.U; }
-    is (AluOpcSltu) { op := OpSltu; src0 := Src0Tos; src1 := Src1Nos; src1N := true.B; wr := true.B; dITos := 3.U; }
-    is (AluOpcSeq)  { op := OpBits; src0 := Src0Tos; src1 := Src1Nos; xtra := XorZX; wr := true.B; dITos := 3.U; }
+    is (AluOpcSlt)  { unit := UnitAdd;  op := SltOp;  src1 := Src1Nos; src1N := true.B; wr := true.B; dITos := 3.U; }
+    is (AluOpcSltu) { unit := UnitAdd;  op := SltuOp; src1 := Src1Nos; src1N := true.B; wr := true.B; dITos := 3.U; }
+    is (AluOpcSeq)  { unit := UnitBits; op := XorZOp; src1 := Src1Nos; wr := true.B; dITos := 3.U; }
 
     /* Integer comparisons with remote ALU tos (PREVIOUS cycle value) XLEN width */
 
-    is (AluOpcSltA0)  { op := OpSlt;  src0 := Src0Tos; src1 := Src1Alu; src1N := true.B; xtra := AluX0.asUInt; wr := true.B; }
-    is (AluOpcSltA1)  { op := OpSlt;  src0 := Src0Tos; src1 := Src1Alu; src1N := true.B; xtra := AluX1.asUInt; wr := true.B; }
-    is (AluOpcSltA2)  { op := OpSlt;  src0 := Src0Tos; src1 := Src1Alu; src1N := true.B; xtra := AluX2.asUInt; wr := true.B; }
-    is (AluOpcSltA3)  { op := OpSlt;  src0 := Src0Tos; src1 := Src1Alu; src1N := true.B; xtra := AluX3.asUInt; wr := true.B; }
-    is (AluOpcSltuA0) { op := OpSltu; src0 := Src0Tos; src1 := Src1Alu; src1N := true.B; xtra := AluX0.asUInt; wr := true.B; }
-    is (AluOpcSltuA1) { op := OpSltu; src0 := Src0Tos; src1 := Src1Alu; src1N := true.B; xtra := AluX1.asUInt; wr := true.B; }
-    is (AluOpcSltuA2) { op := OpSltu; src0 := Src0Tos; src1 := Src1Alu; src1N := true.B; xtra := AluX2.asUInt; wr := true.B; }
-    is (AluOpcSltuA3) { op := OpSltu; src0 := Src0Tos; src1 := Src1Alu; src1N := true.B; xtra := AluX3.asUInt; wr := true.B; }
-    is (AluOpcSeqA0)  { op := OpBits; src0 := Src0Tos; src1 := Src1Alu; xtra := XorZX; wr := true.B }
-    is (AluOpcSeqA1)  { op := OpBits; src0 := Src0Tos; src1 := Src1Alu; xtra := XorZX; wr := true.B }
-    is (AluOpcSeqA2)  { op := OpBits; src0 := Src0Tos; src1 := Src1Alu; xtra := XorZX; wr := true.B }
-    is (AluOpcSeqA3)  { op := OpBits; src0 := Src0Tos; src1 := Src1Alu; xtra := XorZX; wr := true.B }
+    is (AluOpcSltA0)  { unit := UnitAdd;  op := SltOp;  src1 := Src1Alu; src1N := true.B; src1X := AluX0; wr := true.B; }
+    is (AluOpcSltA1)  { unit := UnitAdd;  op := SltOp;  src1 := Src1Alu; src1N := true.B; src1X := AluX1; wr := true.B; }
+    is (AluOpcSltA2)  { unit := UnitAdd;  op := SltOp;  src1 := Src1Alu; src1N := true.B; src1X := AluX2; wr := true.B; }
+    is (AluOpcSltA3)  { unit := UnitAdd;  op := SltOp;  src1 := Src1Alu; src1N := true.B; src1X := AluX3; wr := true.B; }
+    is (AluOpcSltuA0) { unit := UnitAdd;  op := SltuOp; src1 := Src1Alu; src1N := true.B; src1X := AluX0; wr := true.B; }
+    is (AluOpcSltuA1) { unit := UnitAdd;  op := SltuOp; src1 := Src1Alu; src1N := true.B; src1X := AluX1; wr := true.B; }
+    is (AluOpcSltuA2) { unit := UnitAdd;  op := SltuOp; src1 := Src1Alu; src1N := true.B; src1X := AluX2; wr := true.B; }
+    is (AluOpcSltuA3) { unit := UnitAdd;  op := SltuOp; src1 := Src1Alu; src1N := true.B; src1X := AluX3; wr := true.B; }
+    is (AluOpcSeqA0)  { unit := UnitBits; op := XorZOp; src1 := Src1Alu; src1X := AluX0; wr := true.B }
+    is (AluOpcSeqA1)  { unit := UnitBits; op := XorZOp; src1 := Src1Alu; src1X := AluX1; wr := true.B }
+    is (AluOpcSeqA2)  { unit := UnitBits; op := XorZOp; src1 := Src1Alu; src1X := AluX2; wr := true.B }
+    is (AluOpcSeqA3)  { unit := UnitBits; op := XorZOp; src1 := Src1Alu; src1X := AluX3; wr := true.B }
   }
 
-  io.src0 := src0; io.src0N := src0N;
-  io.src1 := src1; io.src1N := src1N;
-  io.op := op
+  io.unit := unit; io.op := op;
+  io.src0N := src0N;
+  io.src1 := src1; io.src1N := src1N; io.src1X := src1X
+  io.fwd := fwd
   io.wr := wr
   io.dITos := dITos
-  io.xtra := xtra
 }
