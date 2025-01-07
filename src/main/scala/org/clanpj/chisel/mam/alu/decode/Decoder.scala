@@ -5,6 +5,8 @@ import chisel3.util._
 // _root_ disambiguates from package chisel3.util.circt if user imports chisel3.util._
 import _root_.circt.stage.ChiselStage
 
+// TODO - shuffle these to improve decode efficiency,
+//   e.g. srcX1/op always in low bits
 object AluOpcode extends ChiselEnum {
   val AluOpcNop =      Value(0x00.U)
   val AluOpcDrop =     Value(0x01.U)
@@ -194,6 +196,15 @@ object Src1RegX extends ChiselEnum {
   val RegX0, RegX1, RegX2, RegX3 = Value
 }
 
+object Src1ConX extends ChiselEnum {
+  val ConXb0, ConXb1, ConXb2, ConXb3 = Value
+  val ConXb4, ConXb5, ConXb6, ConXb7 = Value
+  val ConXh0, ConXh1, ConXh2, ConXh3 = Value
+  val ConXh4, ConXh5, ConXh6, ConXh7 = Value
+  val ConXw0, ConXw1, ConXw2, ConXw3 = Value
+  val ConXw4, ConXw5, ConXw6, ConXw7 = Value
+}
+
 class Decoder extends Module {
   import AluOpcode._
   import AluUnit._
@@ -206,6 +217,7 @@ class Decoder extends Module {
   import Src1AluX._
   import Src1StkX._
   import Src1RegX._
+  import Src1ConX._
 
   val io = IO(new Bundle {
     val opc = Input(AluOpcode())
@@ -359,30 +371,30 @@ class Decoder extends Module {
 
     /* Icache constants */
 
-    is (AluOpcConb0) {}
-    is (AluOpcConb1) {}
-    is (AluOpcConb2) {}
-    is (AluOpcConb3) {}
-    is (AluOpcConb4) {}
-    is (AluOpcConb5) {}
-    is (AluOpcConb6) {}
-    is (AluOpcConb7) {}
-    is (AluOpcConh0) {}
-    is (AluOpcConh1) {}
-    is (AluOpcConh2) {}
-    is (AluOpcConh3) {}
-    is (AluOpcConh4) {}
-    is (AluOpcConh5) {}
-    is (AluOpcConh6) {}
-    is (AluOpcConh7) {}
-    is (AluOpcConw0) {}
-    is (AluOpcConw1) {}
-    is (AluOpcConw2) {}
-    is (AluOpcConw3) {}
-    is (AluOpcConw4) {}
-    is (AluOpcConw5) {}
-    is (AluOpcConw6) {}
-    is (AluOpcConw7) {}
+    is (AluOpcConb0) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb0.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConb1) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb1.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConb2) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb2.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConb3) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb3.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConb4) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb4.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConb5) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb5.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConb6) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb6.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConb7) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb7.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConh0) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh0.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConh1) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh1.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConh2) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh2.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConh3) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh3.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConh4) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh4.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConh5) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh5.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConh6) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh6.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConh7) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh7.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConw0) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw0.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConw1) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw1.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConw2) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw2.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConw3) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw3.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConw4) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw4.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConw5) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw5.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConw6) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw6.asUInt; res := true.B; dITos := 1.U; }
+    is (AluOpcConw7) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw7.asUInt; res := true.B; dITos := 1.U; }
   }
 
   io.unit := unit; io.op := op;
