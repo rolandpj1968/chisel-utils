@@ -126,6 +126,8 @@ object AluOpcode extends ChiselEnum {
 
   /* Icache constants */
 
+  // TODO - maybe only 4 of each, and non-overlapping?
+
   val AluOpcConb0 =    Value(0x68.U)
   val AluOpcConb1 =    Value(0x69.U)
   val AluOpcConb2 =    Value(0x6a.U)
@@ -234,7 +236,7 @@ class Decoder extends Module {
     val dITos = Output(UInt(2.W))
   })
 
-  // Ignore validity - range with extensions is larger
+  // Ignore WARN/"valid" - range with extensions is larger
   val (opc, valid) = AluOpcode.safe(io.opcRaw)
 
   val unit = Wire(AluUnit()); val op = Wire(UInt(5.W))

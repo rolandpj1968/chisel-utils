@@ -8,21 +8,23 @@ import _root_.circt.stage.ChiselStage
 import org.clanpj.chisel.mam.MamSrc;
 
 class Alu(n: Int) extends Module {
+  import AluSrc1._
+  import AluUnit._
 
   // Interface with MAM mothership
   val io = IO(new Bundle {
     val enable = Input(Bool())
     val opc = Input(UInt(8.W))
 
-    // val src = Output(MamSrc())
-    // val srcI = Output(UInt(3.W))
-    // val srcV = Input(UInt(n.W))
+    val src = Output(MamSrc())
+    val srcI = Output(UInt(3.W))
+    val srcV = Input(UInt(n.W))
 
     val nTosV = Output(UInt(n.W))
 
     // val stall = Output(Bool())
 
-    // val trap = Output(Bool())
+    val trap = Output(Bool())
   })
 
   val decoder = Module(new Decoder)
@@ -33,8 +35,7 @@ class Alu(n: Int) extends Module {
   }
 
   val regfile = Module(new RegFile(n, 2/*^2*/))
-  regfile.io.wEn := false.B // TODO remove
-  regfile.io.wVal := 0.U // TODO remove
+  regfile.io.wEn := decoder.io.wr
   regfile.io.i := decoder.io.src1X(1, 0)
 
   val stack = Module(new Stack(n, 2/*^2*/))
@@ -42,17 +43,20 @@ class Alu(n: Int) extends Module {
   stack.io.newTosV := 0.U // TODO remove
   stack.io.dITos := decoder.io.dITos
 
-  val src0raw = Wire(UInt(n.W))
   val src1raw = Wire(UInt(n.W))
-
-  src0raw := stack.io.tosV
   src1raw := stack.io.nosV
-
-  val src0 = Wire(UInt(n.W))
-  src0 := src0raw
-  when (decoder.io.src0N) {
-    src0 := ~src0raw
+  io.src := MamSrc.SrcNone
+  io.srcI := decoder.io.src1X
+  switch (decoder.io.src1) {
+    is (Src1Lit) {}
+    is (Src1Alu) { io.src := MamSrc.SrcAlu; src1raw := io.srcV; }
+    is (Src1Stk) {}
+    is (Src1Reg) { src1raw := regfile.io.v }
+    is (Src1Con) { io.src := MamSrc.SrcConB; src1raw := io.srcV; } // TODO - fix Decoder
   }
+
+  val src0raw = Wire(UInt(n.W))
+  src0raw := stack.io.tosV
 
   val src1 = Wire(UInt(n.W))
   src1 := src1raw
@@ -60,10 +64,33 @@ class Alu(n: Int) extends Module {
     src1 := ~src1raw
   }
 
-  val res = Wire(UInt(n.W))
-  res := stack.io.tosVNext
+  val src0 = Wire(UInt(n.W))
+  src0 := src0raw
+  when (decoder.io.src0N) {
+    src0 := ~src0raw
+  }
 
-  io.nTosV := res
+  val res = Wire(UInt(n.W))
+  res := 0.U
+
+  io.trap := false.B
+  switch (decoder.io.unit) {
+    is (UnitNone)  {}
+    is (UnitSrc1)  { res := src1 }
+    is (UnitAdd)   {}
+    is (UnitShift) {}
+    is (UnitBits)  {}
+    is (UnitExt)   {}
+    is (UnitSel)   {}
+    is (UnitInv)   { io.trap := true.B }
+  }
+
+  regfile.io.wVal := res
+  
+  val nTosV = Wire(UInt(n.W))
+  nTosV := Mux(decoder.io.res, res, stack.io.tosVNext)
+
+  io.nTosV := nTosV
 }
 
 /**
