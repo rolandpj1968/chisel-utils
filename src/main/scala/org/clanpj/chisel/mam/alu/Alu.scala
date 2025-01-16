@@ -8,6 +8,7 @@ import _root_.circt.stage.ChiselStage
 import org.clanpj.chisel.mam.MamSrc;
 
 class Alu(n: Int) extends Module {
+  import AluUnit._
   import AluGenUnit._
 
   // Interface with MAM mothership
@@ -63,8 +64,19 @@ class Alu(n: Int) extends Module {
   io.mamOp := decoder.io.op
   io.nTosV := 0.U // TODO remove
 
-  val src0 = stack.io.nosV
-  val src1 = stack.io.tosV
+  val src0 = Wire(UInt(n.W))
+  src0 := stack.io.nosV
+  val src1 = Wire(UInt(n.W))
+  src1 := stack.io.tosV
+
+  val arithGenEn = en && !decoder.io.gen
+
+  val adderUnit = Module(new AdderUnit(n))
+  adderUnit.io.en := arithGenEn && unitOH(1 << UnitAdd.id)
+  adderUnit.io.op := decoder.io.op
+  adderUnit.io.src0 := src0
+  adderUnit.io.src1 := src1
+  adderUnit.io.bin := decoder.io.bin
 
   // val src1raw = Wire(UInt(n.W))
   // src1raw := stack.io.nosV
