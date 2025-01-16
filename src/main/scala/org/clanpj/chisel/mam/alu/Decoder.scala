@@ -200,9 +200,9 @@ class Decoder extends Module {
     val inv = Output(Bool()) // invalid opc
     val unit = Output(UInt(3.W))
     val op = Output(UInt(2.W))
-    val gen = Output(Bool())   // === generating op, otherwise arithmetic
-    val bin = Output(Bool())  // === binary op, otherwise unary (only for arithmetic ops)
-    val mam = Output(Bool()) // === generated from mother ship
+    val gen = Output(Bool()) // === generating op, otherwise arithmetic
+    val bin = Output(Bool()) // === binary op, otherwise unary (only valid for arithmetic ops)
+    val mam = Output(Bool()) // === generated from mother ship (only valid for generating ops)
     val wr = Output(Bool()) // reg write - reg number in "op"
   })
 
@@ -225,6 +225,7 @@ class Decoder extends Module {
   unit := io.opc(4,2)
   op := io.opc(1,0)
   gen := io.opc(7).asBool
+  bin := io.opc(6).asBool
 
   io.inv := inv
   io.unit := unit

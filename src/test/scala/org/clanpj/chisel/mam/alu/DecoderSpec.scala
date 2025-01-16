@@ -15,7 +15,6 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
       dut.io.unit.expect(0.U)
 
       for (opc <- 0x00 to 0xff) {
-        //println(f"opc: 0x$opc%2x")
         val opcEnumOpt = try {
           Some(AluOpcode(opc))
         } catch {
@@ -32,11 +31,12 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
         dut.clock.step()
         spec match {
           case None => assert(inv)
-          case Some((unit, opOpt, genOpt)) => {
+          case Some((unit, opOpt, genOpt, binOpt)) => {
             assert(!inv)
             dut.io.unit.expect(unit)
             opOpt.foreach((op) => dut.io.op.expect(op))
             genOpt.foreach((gen) => dut.io.gen.expect(gen))
+            binOpt.foreach((bin) => dut.io.bin.expect(bin))
           }
         }
       }
@@ -56,8 +56,8 @@ object DecoderSpec {
   import ExtOp._
   import ShiftOp._
 
-  def N[T] = None
-  def S[T](v: T) = Some(v)
+  // def N[T] = None
+  // def S[T](v: T) = Some(v)
 
   def U1(u: AluUnit) = u.id.U(3.W)
   def U2(u: AluGenUnit) = u.id.U(3.W)
@@ -71,31 +71,33 @@ object DecoderSpec {
 
   def G(b: Boolean) = Some(b.B)
 
+  def B(b: Boolean) = Some(b.B)
+  
   val spec = Map(
     /////////////////////////////////////////////////////////////////
 
     // Unary ops dtos == 0
     // src0 == 0, src1 == TOS
 
-    AluOpcNop ->      (U1(UnitZero), None, None),
+    AluOpcNop ->      (U1(UnitZero), None, None, None),
 
-    AluOpcNeg ->      (U1(UnitAdd), O2(AdderSub), G(false)),
+    AluOpcNeg ->      (U1(UnitAdd), O2(AdderSub), G(false), B(false)),
 
-    AluOpcNot ->      (U1(UnitBits), O3(BitsXor), G(false)),
+    AluOpcNot ->      (U1(UnitBits), O3(BitsXor), G(false), B(false)),
 
     /* Register write non-popping */
 
-    AluOpcWrR0 ->     (U1(UnitTos), O1(Index0), G(false)),
-    AluOpcWrR1 ->     (U1(UnitTos), O1(Index1), G(false)),
-    AluOpcWrR2 ->     (U1(UnitTos), O1(Index2), G(false)),
-    AluOpcWrR3 ->     (U1(UnitTos), O1(Index3), G(false)),
+    AluOpcWrR0 ->     (U1(UnitTos), O1(Index0), G(false), B(false)),
+    AluOpcWrR1 ->     (U1(UnitTos), O1(Index1), G(false), B(false)),
+    AluOpcWrR2 ->     (U1(UnitTos), O1(Index2), G(false), B(false)),
+    AluOpcWrR3 ->     (U1(UnitTos), O1(Index3), G(false), B(false)),
 
     /* Extensions and Truncations */
 
-    AluOpcExtb ->     (U1(UnitExt), O4(ExtExtb), G(false)),
-    AluOpcExtub ->    (U1(UnitExt), O4(ExtExtub), G(false)),
-    AluOpcExth ->     (U1(UnitExt), O4(ExtExtw), G(false)),
-    AluOpcExtuh ->    (U1(UnitExt), O4(ExtExtuw), G(false)),
+    AluOpcExtb ->     (U1(UnitExt), O4(ExtExtb), G(false), B(false)),
+    AluOpcExtub ->    (U1(UnitExt), O4(ExtExtub), G(false), B(false)),
+    AluOpcExth ->     (U1(UnitExt), O4(ExtExtw), G(false), B(false)),
+    AluOpcExtuh ->    (U1(UnitExt), O4(ExtExtuw), G(false), B(false)),
 
     /////////////////////////////////////////////////////////////////
 
@@ -104,84 +106,84 @@ object DecoderSpec {
 
     /* Integer Add/Slt XLEN width */
 
-    AluOpcAdd ->      (U1(UnitAdd), O2(AdderAdd), G(false)),
-    AluOpcSub ->      (U1(UnitAdd), O2(AdderSub), G(false)),
-    AluOpcSlt ->      (U1(UnitAdd), O2(AdderSlt), G(false)),
-    AluOpcSltu ->     (U1(UnitAdd), O2(AdderSltu), G(false)),
+    AluOpcAdd ->      (U1(UnitAdd), O2(AdderAdd), G(false), B(true)),
+    AluOpcSub ->      (U1(UnitAdd), O2(AdderSub), G(false), B(true)),
+    AluOpcSlt ->      (U1(UnitAdd), O2(AdderSlt), G(false), B(true)),
+    AluOpcSltu ->     (U1(UnitAdd), O2(AdderSltu), G(false), B(true)),
 
     /* Bits - XLEN width */
 
-    AluOpcAnd ->      (U1(UnitBits), O3(BitsAnd), G(false)),
-    AluOpcOr ->       (U1(UnitBits), O3(BitsOr), G(false)),
-    AluOpcXor ->      (U1(UnitBits), O3(BitsXor), G(false)),
-    AluOpcSeq ->      (U1(UnitBits), O3(BitsSeq), G(false)),
+    AluOpcAnd ->      (U1(UnitBits), O3(BitsAnd), G(false), B(true)),
+    AluOpcOr ->       (U1(UnitBits), O3(BitsOr), G(false), B(true)),
+    AluOpcXor ->      (U1(UnitBits), O3(BitsXor), G(false), B(true)),
+    AluOpcSeq ->      (U1(UnitBits), O3(BitsSeq), G(false), B(true)),
 
     /* Shift - XLEN width */
 
-    AluOpcSll ->      (U1(UnitShift), O5(ShiftSll), G(false)),
-    AluOpcSrl ->      (U1(UnitShift), O5(ShiftSrl), G(false)),
-    AluOpcSra ->      (U1(UnitShift), O5(ShiftSra), G(false)),
+    AluOpcSll ->      (U1(UnitShift), O5(ShiftSll), G(false), B(true)),
+    AluOpcSrl ->      (U1(UnitShift), O5(ShiftSrl), G(false), B(true)),
+    AluOpcSra ->      (U1(UnitShift), O5(ShiftSra), G(false), B(true)),
 
     /* Select using remote alu condition (LAST cycle value) */
 
-    AluOpcSelzA0 ->   (U1(UnitSelz), O1(Index0), G(false)),
-    AluOpcSelzA1 ->   (U1(UnitSelz), O1(Index1), G(false)),
-    AluOpcSelzA2 ->   (U1(UnitSelz), O1(Index2), G(false)),
-    AluOpcSelzA3 ->   (U1(UnitSelz), O1(Index3), G(false)),
-    AluOpcSelnzA0 ->  (U1(UnitSelnz), O1(Index0), G(false)),
-    AluOpcSelnzA1 ->  (U1(UnitSelnz), O1(Index1), G(false)),
-    AluOpcSelnzA2 ->  (U1(UnitSelnz), O1(Index2), G(false)),
-    AluOpcSelnzA3 ->  (U1(UnitSelnz), O1(Index3), G(false)),
+    AluOpcSelzA0 ->   (U1(UnitSelz), O1(Index0), G(false), B(true)),
+    AluOpcSelzA1 ->   (U1(UnitSelz), O1(Index1), G(false), B(true)),
+    AluOpcSelzA2 ->   (U1(UnitSelz), O1(Index2), G(false), B(true)),
+    AluOpcSelzA3 ->   (U1(UnitSelz), O1(Index3), G(false), B(true)),
+    AluOpcSelnzA0 ->  (U1(UnitSelnz), O1(Index0), G(false), B(true)),
+    AluOpcSelnzA1 ->  (U1(UnitSelnz), O1(Index1), G(false), B(true)),
+    AluOpcSelnzA2 ->  (U1(UnitSelnz), O1(Index2), G(false), B(true)),
+    AluOpcSelnzA3 ->  (U1(UnitSelnz), O1(Index3), G(false), B(true)),
 
     ////////////////////////////////////////////////////////////////////
 
     // Generating ops - dtos == 1
 
     /* Stack read */
-    AluOpcRdS0 ->     (U2(UnitStack), O1(Index0), G(true)),
-    AluOpcRdS1 ->     (U2(UnitStack), O1(Index1), G(true)),
-    AluOpcRdS2 ->     (U2(UnitStack), O1(Index2), G(true)),
-    AluOpcRdS3 ->     (U2(UnitStack), O1(Index3), G(true)),
+    AluOpcRdS0 ->     (U2(UnitStack), O1(Index0), G(true), None),
+    AluOpcRdS1 ->     (U2(UnitStack), O1(Index1), G(true), None),
+    AluOpcRdS2 ->     (U2(UnitStack), O1(Index2), G(true), None),
+    AluOpcRdS3 ->     (U2(UnitStack), O1(Index3), G(true), None),
 
     /* Register read */
-    AluOpcRdR0 ->     (U2(UnitReg), O1(Index0), G(true)),
-    AluOpcRdR1 ->     (U2(UnitReg), O1(Index1), G(true)),
-    AluOpcRdR2 ->     (U2(UnitReg), O1(Index2), G(true)),
-    AluOpcRdR3 ->     (U2(UnitReg), O1(Index3), G(true)),
+    AluOpcRdR0 ->     (U2(UnitReg), O1(Index0), G(true), None),
+    AluOpcRdR1 ->     (U2(UnitReg), O1(Index1), G(true), None),
+    AluOpcRdR2 ->     (U2(UnitReg), O1(Index2), G(true), None),
+    AluOpcRdR3 ->     (U2(UnitReg), O1(Index3), G(true), None),
 
     /* Remote alu TOS access (LAST cycle result) */
-    AluOpcRdA0 ->     (U3(UnitAlu), O1(Index0), G(true)),
-    AluOpcRdA1 ->     (U3(UnitAlu), O1(Index1), G(true)),
-    AluOpcRdA2 ->     (U3(UnitAlu), O1(Index2), G(true)),
-    AluOpcRdA3 ->     (U3(UnitAlu), O1(Index3), G(true)),
+    AluOpcRdA0 ->     (U3(UnitAlu), O1(Index0), G(true), None),
+    AluOpcRdA1 ->     (U3(UnitAlu), O1(Index1), G(true), None),
+    AluOpcRdA2 ->     (U3(UnitAlu), O1(Index2), G(true), None),
+    AluOpcRdA3 ->     (U3(UnitAlu), O1(Index3), G(true), None),
 
     /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
-    // AluOpcRdM0v0 ->   (U3(UnitMem0), None, G(true)),
-    // AluOpcRdM0v1 ->   (U3(UnitMem0), None, G(true)),
-    // AluOpcRdM1v0 ->   (U3(UnitMem0), None, G(true)),
-    // AluOpcRdM1v1 ->   (U3(UnitMem0), None, G(true)),
+    // AluOpcRdM0v0 ->   (U3(UnitMem0), None, G(true), None),
+    // AluOpcRdM0v1 ->   (U3(UnitMem0), None, G(true), None),
+    // AluOpcRdM1v0 ->   (U3(UnitMem0), None, G(true), None),
+    // AluOpcRdM1v1 ->   (U3(UnitMem0), None, G(true), None),
     // TODO addr's too?
 
     /* Icache constants */
 
     // Non-overlapping
-    AluOpcConb0 ->    (U3(UnitConb0), O1(Index0), G(true)),
-    AluOpcConb1 ->    (U3(UnitConb0), O1(Index1), G(true)),
-    AluOpcConb2 ->    (U3(UnitConb0), O1(Index2), G(true)),
-    AluOpcConb3 ->    (U3(UnitConb0), O1(Index3), G(true)),
+    AluOpcConb0 ->    (U3(UnitConb0), O1(Index0), G(true), None),
+    AluOpcConb1 ->    (U3(UnitConb0), O1(Index1), G(true), None),
+    AluOpcConb2 ->    (U3(UnitConb0), O1(Index2), G(true), None),
+    AluOpcConb3 ->    (U3(UnitConb0), O1(Index3), G(true), None),
 
     // Overlapping b/h/w
-    AluOpcConb4 ->    (U3(UnitConb), O1(Index0), G(true)),
-    AluOpcConb5 ->    (U3(UnitConb), O1(Index1), G(true)),
-    AluOpcConb6 ->    (U3(UnitConb), O1(Index2), G(true)),
-    AluOpcConb7 ->    (U3(UnitConb), O1(Index3), G(true)),
-    AluOpcConh0 ->    (U3(UnitConh), O1(Index0), G(true)),
-    AluOpcConh1 ->    (U3(UnitConh), O1(Index1), G(true)),
-    AluOpcConh2 ->    (U3(UnitConh), O1(Index2), G(true)),
-    AluOpcConh3 ->    (U3(UnitConh), O1(Index3), G(true)),
-    AluOpcConw0 ->    (U3(UnitConw), O1(Index0), G(true)),
-    AluOpcConw1 ->    (U3(UnitConw), O1(Index1), G(true)),
-    AluOpcConw2 ->    (U3(UnitConw), O1(Index2), G(true)),
-    AluOpcConw3 ->    (U3(UnitConw), O1(Index3), G(true)),
+    AluOpcConb4 ->    (U3(UnitConb), O1(Index0), G(true), None),
+    AluOpcConb5 ->    (U3(UnitConb), O1(Index1), G(true), None),
+    AluOpcConb6 ->    (U3(UnitConb), O1(Index2), G(true), None),
+    AluOpcConb7 ->    (U3(UnitConb), O1(Index3), G(true), None),
+    AluOpcConh0 ->    (U3(UnitConh), O1(Index0), G(true), None),
+    AluOpcConh1 ->    (U3(UnitConh), O1(Index1), G(true), None),
+    AluOpcConh2 ->    (U3(UnitConh), O1(Index2), G(true), None),
+    AluOpcConh3 ->    (U3(UnitConh), O1(Index3), G(true), None),
+    AluOpcConw0 ->    (U3(UnitConw), O1(Index0), G(true), None),
+    AluOpcConw1 ->    (U3(UnitConw), O1(Index1), G(true), None),
+    AluOpcConw2 ->    (U3(UnitConw), O1(Index2), G(true), None),
+    AluOpcConw3 ->    (U3(UnitConw), O1(Index3), G(true), None),
   );
 }
