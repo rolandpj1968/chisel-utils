@@ -14,6 +14,10 @@ class Stack(n: Int, order: Int) extends Module {
   val size = 1 << order
 
   val io = IO(new Bundle {
+    val en = Input(Bool())
+    val rEn = Input(Bool())
+    val i = Input(Bool())
+    val v = Output(UInt(n.W))
     val wEn = Input(Bool())
     val newTosV = Input(UInt(n.W))
     val dITos = Input(UInt(order.W))
@@ -31,22 +35,34 @@ class Stack(n: Int, order: Int) extends Module {
   // stack entries - circular buffer
   val stack = Reg(Vec(size, UInt(n.W)))
 
-  //printf("iTos %d iNos %d\n", iTos, iNos)
+  io.v := 0.U
+  io.tosV := 0.U
+  io.nosV := 0.U
+  io.tosVNext := 0.U
 
-  io.tosV := stack(iTos)
-  // val iNos = iTos - 1.U - see TODO above
-  io.nosV := stack(iNos)
+  when (io.en) {
 
-  val iTosNext = iTos + io.dITos
-  val iNosNext = iNos + io.dITos
+    when (io.rEn) {
+      io.v := stack(iTos + io.i)
+    }
 
-  io.tosVNext := stack(iTosNext)
+    //printf("iTos %d iNos %d\n", iTos, iNos)
 
-  when (io.wEn) {
-    stack(iTosNext) := io.newTosV
+    io.tosV := stack(iTos)
+    // val iNos = iTos - 1.U - see TODO above
+    io.nosV := stack(iNos)
+
+    val iTosNext = iTos + io.dITos
+    val iNosNext = iNos + io.dITos
+
+    io.tosVNext := stack(iTosNext)
+
+    when (io.wEn) {
+      stack(iTosNext) := io.newTosV
+    }
+
+    iTos := iTosNext
+    iNos := iNosNext
   }
-
-  iTos := iTosNext
-  iNos := iNosNext
 }
 

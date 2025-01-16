@@ -8,21 +8,21 @@ import _root_.circt.stage.ChiselStage
 import org.clanpj.chisel.mam.MamSrc;
 
 class Alu(n: Int) extends Module {
-  // import AluSrc1._
-  // import AluUnit._
+  import AluGenUnit._
 
   // Interface with MAM mothership
   val io = IO(new Bundle {
-    val enable = Input(Bool())
+    val en = Input(Bool())
     val opc = Input(UInt(8.W))
 
-    val src = Output(MamSrc())
-    val srcI = Output(UInt(3.W))
-    val srcV = Input(UInt(n.W))
+    val mamREn = Output(Bool())
+    val mamUnit = Output(UInt(3.W))
+    val mamOp = Output(UInt(2.W))
+    val mamV = Input(UInt(n.W))
 
     val nTosV = Output(UInt(n.W))
 
-    // val stall = Output(Bool())
+    val stall = Output(Bool())
 
     val trap = Output(Bool())
   })
@@ -30,18 +30,41 @@ class Alu(n: Int) extends Module {
   val decoder = Module(new Decoder)
 
   decoder.io.opc := 0.U
-  when (io.enable) {
+  when (io.en) {
     decoder.io.opc := io.opc
   }
 
-  // val regfile = Module(new RegFile(n, 2/*^2*/))
-  // regfile.io.wEn := decoder.io.wr
-  // regfile.io.i := decoder.io.src1X(1, 0)
+  io.trap := decoder.io.inv
+  io.stall := false.B
 
-  // val stack = Module(new Stack(n, 2/*^2*/))
-  // stack.io.wEn := false.B // TODO remove
-  // stack.io.newTosV := 0.U // TODO remove
-  // stack.io.dITos := decoder.io.dITos
+  val en = !(decoder.io.nop || decoder.io.inv)
+  val genEn = en && decoder.io.gen
+  val aluGenEn = genEn && !decoder.io.mam
+  val mamGenEn = genEn && decoder.io.mam
+
+  val unitOH = UIntToOH(decoder.io.unit)
+
+  val regfile = Module(new RegFile(n, 2/*^2*/))
+  regfile.io.en := aluGenEn && unitOH(1 << UnitReg.id)
+  regfile.io.wEn := en && decoder.io.wr
+  regfile.io.wVal := 0.U // TODO remove
+  regfile.io.i := decoder.io.op
+
+  val stack = Module(new Stack(n, 2/*^2*/))
+  stack.io.en := en
+  stack.io.rEn := aluGenEn && unitOH(1 << UnitStack.id)
+  stack.io.i := decoder.io.op
+  stack.io.wEn := true.B // TODO remove
+  stack.io.newTosV := 0.U // TODO remove
+  stack.io.dITos := Mux(decoder.io.gen, 0x1.U, Mux(decoder.io.bin, 0x0.U, ((1<<2)-1).U))
+
+  io.mamREn := mamGenEn
+  io.mamUnit := decoder.io.unit
+  io.mamOp := decoder.io.op
+  io.nTosV := 0.U // TODO remove
+
+  val src0 = stack.io.nosV
+  val src1 = stack.io.tosV
 
   // val src1raw = Wire(UInt(n.W))
   // src1raw := stack.io.nosV
@@ -73,7 +96,6 @@ class Alu(n: Int) extends Module {
   // val res = Wire(UInt(n.W))
   // res := 0.U
 
-  // io.trap := false.B
   // switch (decoder.io.unit) {
   //   is (UnitNone)  {}
   //   is (UnitSrc1)  { res := src1 }
