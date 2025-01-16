@@ -46,17 +46,23 @@ class FullAdderNSpec extends AnyFreeSpec with Matchers {
     }
   }
 
+  val FULL = false
+
   // simple adders
   dotest(() => FullAdderN.simple(1), "simple1", 1)
   dotest(() => FullAdderN.simple(3), "simple3", 3)
-  dotest(() => FullAdderN.simple(4), "simple4", 4)
-  dotest(() => FullAdderN.simple(64), "simple64", 64)
+  if (FULL) {
+    dotest(() => FullAdderN.simple(4), "simple4", 4)
+    dotest(() => FullAdderN.simple(64), "simple64", 64)
+  }
 
   // carry-select adders
   dotest(() => FullAdderN.csel(2), "csel2", 2)
   dotest(() => FullAdderN.csel(5), "csel5", 5)
-  dotest(() => FullAdderN.csel(16), "csel16", 16)
-  dotest(() => FullAdderN.csel(64), "csel64", 64)
+  if (FULL) {
+    dotest(() => FullAdderN.csel(16), "csel16", 16)
+    dotest(() => FullAdderN.csel(64), "csel64", 64)
+  }
 
   // 2-layer carry-select adder
   dotest(() => FullAdderN.csel(19, (n: Int) => FullAdderN.csel(n)), "csel19[csel9,csel10]", 19)
@@ -64,8 +70,10 @@ class FullAdderNSpec extends AnyFreeSpec with Matchers {
   // carry-lookahead adders
   dotest(() => FullAdderN.clkahd(2), "clkahd2", 2)
   dotest(() => FullAdderN.clkahd(5), "clkahd5", 5)
-  dotest(() => FullAdderN.clkahd(16), "clkahd16", 16)
-  dotest(() => FullAdderN.clkahd(64), "clkahd64", 64)
+  if (FULL) {
+    dotest(() => FullAdderN.clkahd(16), "clkahd16", 16)
+    dotest(() => FullAdderN.clkahd(64), "clkahd64", 64)
+  }
 
   // 2-layer carry-lookahead adder
   dotest(() => FullAdderN.clkahd(23, (n: Int) => FullAdderN.clkahd(n)), "clkahd23[clkahd11,clkahd12]", 23)

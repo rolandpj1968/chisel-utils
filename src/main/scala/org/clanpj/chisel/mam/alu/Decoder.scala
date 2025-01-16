@@ -155,6 +155,14 @@ object AluMamGenUnit extends Enumeration {
   val UnitConw = Value(0x7)
 }
 
+object IndexOp extends Enumeration {
+  type IndexOp = Value
+  val Index0 = Value(0x0)
+  val Index1 = Value(0x1)
+  val Index2 = Value(0x2)
+  val Index3 = Value(0x3)
+}
+
 // // negate src0 == op[0]; negate src1 == ~(op[0]) && op != 0
 // // slt[u] == op & 4
 // // Hrmmm, add1, add2, add4, add8
@@ -253,152 +261,6 @@ class Decoder extends Module {
 
   unit := io.opc(4,2)
   op := io.opc(1,0)
-
-  // TODO - greatly simplify
-  // switch (opc) {
-  //   is (AluOpcNop)   { unit := UnitNone; }
-  //   is (AluOpcDrop)  { unit := UnitNone; dITos := 3.U; }
-  //   is (AluOpcAdd1)  { unit := UnitAdd; op := AddOp.asUInt; src1 := Src1Lit;                  src1X := LitX1.asUInt; res := true.B; }
-  //   is (AluOpcSub1)  { unit := UnitAdd; op := AddOp.asUInt; src1 := Src1Lit; src1N := true.B; src1X := LitX1.asUInt; res := true.B; }
-  //   is (AluOpcAdd2)  { unit := UnitAdd; op := AddOp.asUInt; src1 := Src1Lit;                  src1X := LitX2.asUInt; res := true.B; }
-  //   is (AluOpcSub2)  { unit := UnitAdd; op := AddOp.asUInt; src1 := Src1Lit; src1N := true.B; src1X := LitX2.asUInt; res := true.B; }
-  //   is (AluOpcAdd4)  { unit := UnitAdd; op := AddOp.asUInt; src1 := Src1Lit;                  src1X := LitX4.asUInt; res := true.B; }
-  //   is (AluOpcSub4)  { unit := UnitAdd; op := AddOp.asUInt; src1 := Src1Lit; src1N := true.B; src1X := LitX4.asUInt; res := true.B; }
-
-  //   /* Integer Arithmetic XLEN width */
-
-  //   is (AluOpcAdd)   { unit := UnitAdd; op := AddOp.asUInt;                  src1 := Src1Nos;                  res := true.B; dITos := 3.U; }
-  //   is (AluOpcSub)   { unit := UnitAdd; op := AddOp.asUInt;                ; src1 := Src1Nos; src1N := true.B; res := true.B; dITos := 3.U; }
-  //   is (AluOpcRsub)  { unit := UnitAdd; op := AddOp.asUInt; src0N := true.B; src1 := Src1Nos;                  res := true.B; dITos := 3.U; }
-  //   is (AluOpcNeg)   { unit := UnitAdd; op := AddOp.asUInt; src0N := true.B; src1 := Src1Lit; src1X := LitX0.asUInt;  res := true.B; }
-
-  //   /* Integer add with remote ALU tos (PREVIOUS cycle value) XLEN width */
-
-  //   is (AluOpcAddA0) { unit := UnitAdd; op := AddOp.asUInt;                  src1 := Src1Alu; src1X := AluX0.asUInt; res := true.B; }
-  //   is (AluOpcAddA1) { unit := UnitAdd; op := AddOp.asUInt;                  src1 := Src1Alu; src1X := AluX1.asUInt; res := true.B; }
-  //   is (AluOpcAddA2) { unit := UnitAdd; op := AddOp.asUInt;                  src1 := Src1Alu; src1X := AluX2.asUInt; res := true.B; }
-  //   is (AluOpcAddA3) { unit := UnitAdd; op := AddOp.asUInt;                  src1 := Src1Alu; src1X := AluX3.asUInt; res := true.B; }
-
-  //   /* Shift Binary - XLEN width */
-
-  //   is (AluOpcSll) { unit := UnitShift; op := SllOp.asUInt; src1 := Src1Nos; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSrl) { unit := UnitShift; op := SrlOp.asUInt; src1 := Src1Nos; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSra) { unit := UnitShift; op := SraOp.asUInt; src1 := Src1Nos; res := true.B; dITos := 3.U; }
-
-  //   /* Bits - XLEN width */
-
-  //   is (AluOpcAnd) { unit := UnitBits; op := AndOp.asUInt; src1 := Src1Nos; res := true.B; dITos := 3.U; }
-  //   is (AluOpcOr)  { unit := UnitBits; op := OrOp.asUInt;  src1 := Src1Nos; res := true.B; dITos := 3.U; }
-  //   is (AluOpcXor) { unit := UnitBits; op := XorOp.asUInt; src1 := Src1Nos; res := true.B; dITos := 3.U; }
-  //   is (AluOpcNot) { unit := UnitNone; src0N := true.B; res := true.B; }
-
-  //   /* Comparisons - XLEN width */
-
-  //   is (AluOpcSlt)  { unit := UnitAdd;  op := SltOp.asUInt;  src1 := Src1Nos; src1N := true.B; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSltu) { unit := UnitAdd;  op := SltuOp.asUInt; src1 := Src1Nos; src1N := true.B; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSeq)  { unit := UnitBits; op := XorZOp.asUInt; src1 := Src1Nos; res := true.B; dITos := 3.U; }
-
-  //   /* Integer comparisons with remote ALU tos (PREVIOUS cycle value) XLEN width */
-
-  //   is (AluOpcSltA0)  { unit := UnitAdd;  op := SltOp.asUInt;  src1 := Src1Alu; src1N := true.B; src1X := AluX0.asUInt; res := true.B; }
-  //   is (AluOpcSltA1)  { unit := UnitAdd;  op := SltOp.asUInt;  src1 := Src1Alu; src1N := true.B; src1X := AluX1.asUInt; res := true.B; }
-  //   is (AluOpcSltA2)  { unit := UnitAdd;  op := SltOp.asUInt;  src1 := Src1Alu; src1N := true.B; src1X := AluX2.asUInt; res := true.B; }
-  //   is (AluOpcSltA3)  { unit := UnitAdd;  op := SltOp.asUInt;  src1 := Src1Alu; src1N := true.B; src1X := AluX3.asUInt; res := true.B; }
-  //   is (AluOpcSltuA0) { unit := UnitAdd;  op := SltuOp.asUInt; src1 := Src1Alu; src1N := true.B; src1X := AluX0.asUInt; res := true.B; }
-  //   is (AluOpcSltuA1) { unit := UnitAdd;  op := SltuOp.asUInt; src1 := Src1Alu; src1N := true.B; src1X := AluX1.asUInt; res := true.B; }
-  //   is (AluOpcSltuA2) { unit := UnitAdd;  op := SltuOp.asUInt; src1 := Src1Alu; src1N := true.B; src1X := AluX2.asUInt; res := true.B; }
-  //   is (AluOpcSltuA3) { unit := UnitAdd;  op := SltuOp.asUInt; src1 := Src1Alu; src1N := true.B; src1X := AluX3.asUInt; res := true.B; }
-  //   is (AluOpcSeqA0)  { unit := UnitBits; op := XorZOp.asUInt; src1 := Src1Alu; src1X := AluX0.asUInt; res := true.B }
-  //   is (AluOpcSeqA1)  { unit := UnitBits; op := XorZOp.asUInt; src1 := Src1Alu; src1X := AluX1.asUInt; res := true.B }
-  //   is (AluOpcSeqA2)  { unit := UnitBits; op := XorZOp.asUInt; src1 := Src1Alu; src1X := AluX2.asUInt; res := true.B }
-  //   is (AluOpcSeqA3)  { unit := UnitBits; op := XorZOp.asUInt; src1 := Src1Alu; src1X := AluX3.asUInt; res := true.B }
-
-  //   /* Extensions and Truncations */
-
-  //   is (AluOpcExtb)   { unit := UnitExt; op := ExtbOp.asUInt;  res := true.B; }
-  //   is (AluOpcExtub)  { unit := UnitExt; op := ExtubOp.asUInt; res := true.B; }
-  //   is (AluOpcExth)   { unit := UnitExt; op := ExthOp.asUInt;  res := true.B; }
-  //   is (AluOpcExtuh)  { unit := UnitExt; op := ExtuhOp.asUInt; res := true.B; }
-
-  //   /* Stack read */
-  //   is (AluOpcRdS0)   { unit := UnitSrc1; src1 := Src1Stk; src1X := StkX0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdS1)   { unit := UnitSrc1; src1 := Src1Stk; src1X := StkX1.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdS2)   { unit := UnitSrc1; src1 := Src1Stk; src1X := StkX2.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdS3)   { unit := UnitSrc1; src1 := Src1Stk; src1X := StkX3.asUInt; res := true.B; dITos := 1.U; }
-
-  //   /* Register read */
-  //   is (AluOpcRdR0)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdR1)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX1.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdR2)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX2.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdR3)   { unit := UnitSrc1; src1 := Src1Reg; src1X := RegX3.asUInt; res := true.B; dITos := 1.U; }
-
-  //   /* Register write popping */
-  //   is (AluOpcWpR0)   { unit := UnitNone; wr := true.B; src1X := RegX0.asUInt; dITos := 3.U }
-  //   is (AluOpcWpR1)   { unit := UnitNone; wr := true.B; src1X := RegX1.asUInt; dITos := 3.U }
-  //   is (AluOpcWpR2)   { unit := UnitNone; wr := true.B; src1X := RegX2.asUInt; dITos := 3.U }
-  //   is (AluOpcWpR3)   { unit := UnitNone; wr := true.B; src1X := RegX3.asUInt; dITos := 3.U }
-
-  //   /* Register write non-popping */
-  //   is (AluOpcWrR0)   { unit := UnitNone; wr := true.B; src1X := RegX0.asUInt; }
-  //   is (AluOpcWrR1)   { unit := UnitNone; wr := true.B; src1X := RegX1.asUInt; }
-  //   is (AluOpcWrR2)   { unit := UnitNone; wr := true.B; src1X := RegX2.asUInt; }
-  //   is (AluOpcWrR3)   { unit := UnitNone; wr := true.B; src1X := RegX3.asUInt; }
-
-  //   /* Remote alu TOS access (LAST cycle result) */
-  //   is (AluOpcRdA0)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdA1)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX1.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdA2)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX2.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcRdA3)   { unit := UnitSrc1; src1 := Src1Alu; src1X := AluX3.asUInt; res := true.B; dITos := 1.U; }
-
-  //   /* Remote alu TOS access (THIS cycle result forwarded) */
-  //   is (AluOpcFwA0)   { unit := UnitNone; fw := true.B; src1X := AluX0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcFwA1)   { unit := UnitNone; fw := true.B; src1X := AluX0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcFwA2)   { unit := UnitNone; fw := true.B; src1X := AluX0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcFwA3)   { unit := UnitNone; fw := true.B; src1X := AluX0.asUInt; res := true.B; dITos := 1.U; }
-
-  //   /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
-  //   is (AluOpcRdM0v0) {} // TODO
-  //   is (AluOpcRdM0v1) {}
-  //   is (AluOpcRdM1v0) {}
-  //   is (AluOpcRdM1v1) {}
-
-  //   /* Select using remote alu condition (LAST cycle value) */
-  //   is (AluOpcSelzA0)  { unit := UnitSel; selz := true.B;  src1X := AluX0.asUInt; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSelzA1)  { unit := UnitSel; selz := true.B;  src1X := AluX1.asUInt; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSelzA2)  { unit := UnitSel; selz := true.B;  src1X := AluX2.asUInt; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSelzA3)  { unit := UnitSel; selz := true.B;  src1X := AluX3.asUInt; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSelnzA0) { unit := UnitSel; selz := false.B; src1X := AluX0.asUInt; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSelnzA1) { unit := UnitSel; selz := false.B; src1X := AluX1.asUInt; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSelnzA2) { unit := UnitSel; selz := false.B; src1X := AluX2.asUInt; res := true.B; dITos := 3.U; }
-  //   is (AluOpcSelnzA3) { unit := UnitSel; selz := false.B; src1X := AluX3.asUInt; res := true.B; dITos := 3.U; }
-
-  //   /* Icache constants */
-
-  //   is (AluOpcConb0) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConb1) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb1.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConb2) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb2.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConb3) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb3.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConb4) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb4.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConb5) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb5.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConb6) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb6.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConb7) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXb7.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConh0) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConh1) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh1.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConh2) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh2.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConh3) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh3.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConh4) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh4.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConh5) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh5.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConh6) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh6.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConh7) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXh7.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConw0) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw0.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConw1) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw1.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConw2) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw2.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConw3) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw3.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConw4) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw4.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConw5) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw5.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConw6) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw6.asUInt; res := true.B; dITos := 1.U; }
-  //   is (AluOpcConw7) { unit := UnitSrc1; src1 := Src1Con; src1X := ConXw7.asUInt; res := true.B; dITos := 1.U; }
-  // }
 
   io.inv := inv
   io.unit := unit

@@ -32,7 +32,7 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
         dut.clock.step()
         spec match {
           case None => assert(inv)
-          case Some(unit) => {
+          case Some((unit, opOpt)) => {
             assert(!inv)
             dut.io.unit.expect(unit)
           }
@@ -48,6 +48,7 @@ object DecoderSpec {
   import AluUnit._
   import AluGenUnit._
   import AluMamGenUnit._
+  import IndexOp._
 
   def N[T] = None
   def S[T](v: T) = Some(v)
@@ -56,31 +57,33 @@ object DecoderSpec {
   def U2(u: AluGenUnit) = u.id.U(3.W)
   def U3(u: AluMamGenUnit) = u.id.U(3.W)
 
+  def O1(u: IndexOp) = Some(u.id.U(2.W))
+
   val spec = Map(
     /////////////////////////////////////////////////////////////////
 
     // Unary ops dtos == 0
     // src0 == 0, src1 == TOS
 
-    AluOpcNop ->      (U1(UnitZero)),
+    AluOpcNop ->      (U1(UnitZero), None),
 
-    AluOpcNeg ->      (U1(UnitAdd)),
+    AluOpcNeg ->      (U1(UnitAdd), None),
 
-    AluOpcNot ->      (U1(UnitBits)),
+    AluOpcNot ->      (U1(UnitBits), None),
 
     /* Register write non-popping */
 
-    AluOpcWrR0 ->     (U1(UnitTos)),
-    AluOpcWrR1 ->     (U1(UnitTos)),
-    AluOpcWrR2 ->     (U1(UnitTos)),
-    AluOpcWrR3 ->     (U1(UnitTos)),
+    AluOpcWrR0 ->     (U1(UnitTos), None),
+    AluOpcWrR1 ->     (U1(UnitTos), None),
+    AluOpcWrR2 ->     (U1(UnitTos), None),
+    AluOpcWrR3 ->     (U1(UnitTos), None),
 
     /* Extensions and Truncations */
 
-    AluOpcExtb ->     (U1(UnitExt)),
-    AluOpcExtub ->    (U1(UnitExt)),
-    AluOpcExth ->     (U1(UnitExt)),
-    AluOpcExtuh ->    (U1(UnitExt)),
+    AluOpcExtb ->     (U1(UnitExt), None),
+    AluOpcExtub ->    (U1(UnitExt), None),
+    AluOpcExth ->     (U1(UnitExt), None),
+    AluOpcExtuh ->    (U1(UnitExt), None),
 
     /////////////////////////////////////////////////////////////////
 
@@ -89,84 +92,84 @@ object DecoderSpec {
 
     /* Integer Add/Slt XLEN width */
 
-    AluOpcAdd ->      (U1(UnitAdd)),
-    AluOpcSub ->      (U1(UnitAdd)),
-    AluOpcSlt ->      (U1(UnitAdd)),
-    AluOpcSltu ->     (U1(UnitAdd)),
+    AluOpcAdd ->      (U1(UnitAdd), None),
+    AluOpcSub ->      (U1(UnitAdd), None),
+    AluOpcSlt ->      (U1(UnitAdd), None),
+    AluOpcSltu ->     (U1(UnitAdd), None),
 
     /* Bits - XLEN width */
 
-    AluOpcAnd ->      (U1(UnitBits)),
-    AluOpcOr ->       (U1(UnitBits)),
-    AluOpcXor ->      (U1(UnitBits)),
-    AluOpcSeq ->      (U1(UnitBits)),
+    AluOpcAnd ->      (U1(UnitBits), None),
+    AluOpcOr ->       (U1(UnitBits), None),
+    AluOpcXor ->      (U1(UnitBits), None),
+    AluOpcSeq ->      (U1(UnitBits), None),
 
     /* Shift - XLEN width */
 
-    AluOpcSll ->      (U1(UnitShift)),
-    AluOpcSrl ->      (U1(UnitShift)),
-    AluOpcSra ->      (U1(UnitShift)),
+    AluOpcSll ->      (U1(UnitShift), None),
+    AluOpcSrl ->      (U1(UnitShift), None),
+    AluOpcSra ->      (U1(UnitShift), None),
 
     /* Select using remote alu condition (LAST cycle value) */
 
-    AluOpcSelzA0 ->   (U1(UnitSelz)),
-    AluOpcSelzA1 ->   (U1(UnitSelz)),
-    AluOpcSelzA2 ->   (U1(UnitSelz)),
-    AluOpcSelzA3 ->   (U1(UnitSelz)),
-    AluOpcSelnzA0 ->  (U1(UnitSelnz)),
-    AluOpcSelnzA1 ->  (U1(UnitSelnz)),
-    AluOpcSelnzA2 ->  (U1(UnitSelnz)),
-    AluOpcSelnzA3 ->  (U1(UnitSelnz)),
+    AluOpcSelzA0 ->   (U1(UnitSelz), None),
+    AluOpcSelzA1 ->   (U1(UnitSelz), None),
+    AluOpcSelzA2 ->   (U1(UnitSelz), None),
+    AluOpcSelzA3 ->   (U1(UnitSelz), None),
+    AluOpcSelnzA0 ->  (U1(UnitSelnz), None),
+    AluOpcSelnzA1 ->  (U1(UnitSelnz), None),
+    AluOpcSelnzA2 ->  (U1(UnitSelnz), None),
+    AluOpcSelnzA3 ->  (U1(UnitSelnz), None),
 
     ////////////////////////////////////////////////////////////////////
 
     // Generating ops - dtos == 1
 
     /* Stack read */
-    AluOpcRdS0 ->     (U2(UnitStack)),
-    AluOpcRdS1 ->     (U2(UnitStack)),
-    AluOpcRdS2 ->     (U2(UnitStack)),
-    AluOpcRdS3 ->     (U2(UnitStack)),
+    AluOpcRdS0 ->     (U2(UnitStack), None),
+    AluOpcRdS1 ->     (U2(UnitStack), None),
+    AluOpcRdS2 ->     (U2(UnitStack), None),
+    AluOpcRdS3 ->     (U2(UnitStack), None),
 
     /* Register read */
-    AluOpcRdR0 ->     (U2(UnitReg)),
-    AluOpcRdR1 ->     (U2(UnitReg)),
-    AluOpcRdR2 ->     (U2(UnitReg)),
-    AluOpcRdR3 ->     (U2(UnitReg)),
+    AluOpcRdR0 ->     (U2(UnitReg), None),
+    AluOpcRdR1 ->     (U2(UnitReg), None),
+    AluOpcRdR2 ->     (U2(UnitReg), None),
+    AluOpcRdR3 ->     (U2(UnitReg), None),
 
     /* Remote alu TOS access (LAST cycle result) */
-    AluOpcRdA0 ->     (U3(UnitAlu)),
-    AluOpcRdA1 ->     (U3(UnitAlu)),
-    AluOpcRdA2 ->     (U3(UnitAlu)),
-    AluOpcRdA3 ->     (U3(UnitAlu)),
+    AluOpcRdA0 ->     (U3(UnitAlu), None),
+    AluOpcRdA1 ->     (U3(UnitAlu), None),
+    AluOpcRdA2 ->     (U3(UnitAlu), None),
+    AluOpcRdA3 ->     (U3(UnitAlu), None),
 
     /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
-    // AluOpcRdM0v0 ->   (U3(UnitMem0)),
-    // AluOpcRdM0v1 ->   (U3(UnitMem0)),
-    // AluOpcRdM1v0 ->   (U3(UnitMem0)),
-    // AluOpcRdM1v1 ->   (U3(UnitMem0)),
+    // AluOpcRdM0v0 ->   (U3(UnitMem0), None),
+    // AluOpcRdM0v1 ->   (U3(UnitMem0), None),
+    // AluOpcRdM1v0 ->   (U3(UnitMem0), None),
+    // AluOpcRdM1v1 ->   (U3(UnitMem0), None),
     // TODO addr's too?
 
     /* Icache constants */
 
     // Non-overlapping
-    AluOpcConb0 ->    (U3(UnitConb0)),
-    AluOpcConb1 ->    (U3(UnitConb0)),
-    AluOpcConb2 ->    (U3(UnitConb0)),
-    AluOpcConb3 ->    (U3(UnitConb0)),
+    AluOpcConb0 ->    (U3(UnitConb0), None),
+    AluOpcConb1 ->    (U3(UnitConb0), None),
+    AluOpcConb2 ->    (U3(UnitConb0), None),
+    AluOpcConb3 ->    (U3(UnitConb0), None),
 
     // Overlapping b/h/w
-    AluOpcConb4 ->    (U3(UnitConb)),
-    AluOpcConb5 ->    (U3(UnitConb)),
-    AluOpcConb6 ->    (U3(UnitConb)),
-    AluOpcConb7 ->    (U3(UnitConb)),
-    AluOpcConh0 ->    (U3(UnitConh)),
-    AluOpcConh1 ->    (U3(UnitConh)),
-    AluOpcConh2 ->    (U3(UnitConh)),
-    AluOpcConh3 ->    (U3(UnitConh)),
-    AluOpcConw0 ->    (U3(UnitConw)),
-    AluOpcConw1 ->    (U3(UnitConw)),
-    AluOpcConw2 ->    (U3(UnitConw)),
-    AluOpcConw3 ->    (U3(UnitConw)),
+    AluOpcConb4 ->    (U3(UnitConb), None),
+    AluOpcConb5 ->    (U3(UnitConb), None),
+    AluOpcConb6 ->    (U3(UnitConb), None),
+    AluOpcConb7 ->    (U3(UnitConb), None),
+    AluOpcConh0 ->    (U3(UnitConh), None),
+    AluOpcConh1 ->    (U3(UnitConh), None),
+    AluOpcConh2 ->    (U3(UnitConh), None),
+    AluOpcConh3 ->    (U3(UnitConh), None),
+    AluOpcConw0 ->    (U3(UnitConw), None),
+    AluOpcConw1 ->    (U3(UnitConw), None),
+    AluOpcConw2 ->    (U3(UnitConw), None),
+    AluOpcConw3 ->    (U3(UnitConw), None),
   );
 }
