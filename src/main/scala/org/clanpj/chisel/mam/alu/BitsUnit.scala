@@ -18,8 +18,6 @@ class BitsUnit(n: Int) extends Module {
   io.v := 0.U
 
   when (io.en) {
-    val cin = Wire(UInt(1.W))
-    cin := 0.U
     val src0 = Wire(UInt(n.W))
     src0 := Mux(io.bin, io.src0, 0.U)
     val src1 = Wire(UInt(n.W))

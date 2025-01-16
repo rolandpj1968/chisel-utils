@@ -43,16 +43,16 @@ class Alu(n: Int) extends Module {
   val aluGenEn = genEn && !decoder.io.mam
   val mamGenEn = genEn && decoder.io.mam
 
-  val unitOH = UIntToOH(decoder.io.unit)
+  //val unitOH = UIntToOH(decoder.io.unit)
 
   val regfile = Module(new RegFile(n, 2/*^2*/))
-  regfile.io.en := aluGenEn && unitOH(1 << UnitReg.id)
+  regfile.io.en := aluGenEn && (decoder.io.unit === UnitReg.id.U) //unitOH(1 << UnitReg.id)
   regfile.io.wEn := en && decoder.io.wr
   regfile.io.i := decoder.io.op
 
   val stack = Module(new Stack(n, 2/*^2*/))
   stack.io.en := en
-  stack.io.rEn := aluGenEn && unitOH(1 << UnitStack.id)
+  stack.io.rEn := aluGenEn && (decoder.io.unit === UnitStack.id.U) //unitOH(1 << UnitStack.id)
   stack.io.i := decoder.io.op
   stack.io.wEn := true.B // TODO remove
   stack.io.dITos := Mux(decoder.io.gen, 0x1.U, Mux(decoder.io.bin, 0x0.U, ((1<<2)-1).U))
@@ -72,21 +72,26 @@ class Alu(n: Int) extends Module {
   val arithGenEn = en && !decoder.io.gen
 
   val adderUnit = Module(new AdderUnit(n))
-  adderUnit.io.en := arithGenEn && unitOH(1 << UnitAdd.id)
+  adderUnit.io.en := arithGenEn && (decoder.io.unit === UnitAdd.id.U) //unitOH(1 << UnitAdd.id)
   adderUnit.io.op := decoder.io.op
   adderUnit.io.src0 := src0
   adderUnit.io.src1 := src1
   adderUnit.io.bin := decoder.io.bin
 
   val bitsUnit = Module(new BitsUnit(n))
-  bitsUnit.io.en := arithGenEn && unitOH(1 << UnitBits.id)
+  bitsUnit.io.en := arithGenEn && (decoder.io.unit === UnitBits.id.U) //unitOH(1 << UnitBits.id)
   bitsUnit.io.op := decoder.io.op
   bitsUnit.io.src0 := src0
   bitsUnit.io.src1 := src1
   bitsUnit.io.bin := decoder.io.bin
 
+  val extUnit = Module(new ExtUnit(n))
+  extUnit.io.en := arithGenEn && (decoder.io.unit === UnitExt.id.U) //unitOH(1 << UnitExt.id)
+  extUnit.io.op := decoder.io.op
+  extUnit.io.src := src1
+
   val vArith = Wire(UInt(n.W))
-  vArith := adderUnit.io.v | bitsUnit.io.v
+  vArith := adderUnit.io.v | bitsUnit.io.v | extUnit.io.v
 
   val v = Wire(UInt(n.W))
   v := vGen | vArith
