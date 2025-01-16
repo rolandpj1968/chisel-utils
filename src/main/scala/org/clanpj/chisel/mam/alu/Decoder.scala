@@ -177,6 +177,21 @@ object BitsOp extends Enumeration {
   val BitsSeq = Value(0x3)
 }
 
+object ExtOp extends Enumeration {
+  type ExtOp = Value
+  val ExtExtb = Value(0x0)
+  val ExtExtub = Value(0x1)
+  val ExtExtw = Value(0x2)
+  val ExtExtuw = Value(0x3)
+}
+
+object ShiftOp extends Enumeration {
+  type ShiftOp = Value
+  val ShiftSll = Value(0x0)
+  val ShiftSrl = Value(0x1)
+  val ShiftSra = Value(0x2)
+}
+
 // // negate src0 == op[0]; negate src1 == ~(op[0]) && op != 0
 // // slt[u] == op & 4
 // // Hrmmm, add1, add2, add4, add8

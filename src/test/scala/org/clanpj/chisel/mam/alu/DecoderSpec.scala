@@ -52,6 +52,8 @@ object DecoderSpec {
   import IndexOp._
   import AdderOp._
   import BitsOp._
+  import ExtOp._
+  import ShiftOp._
 
   def N[T] = None
   def S[T](v: T) = Some(v)
@@ -63,6 +65,8 @@ object DecoderSpec {
   def O1(u: IndexOp) = Some(u.id.U(2.W))
   def O2(u: AdderOp) = Some(u.id.U(2.W))
   def O3(u: BitsOp) = Some(u.id.U(2.W))
+  def O4(u: ExtOp) = Some(u.id.U(2.W))
+  def O5(u: ShiftOp) = Some(u.id.U(2.W))
 
   val spec = Map(
     /////////////////////////////////////////////////////////////////
@@ -85,10 +89,10 @@ object DecoderSpec {
 
     /* Extensions and Truncations */
 
-    AluOpcExtb ->     (U1(UnitExt), None),
-    AluOpcExtub ->    (U1(UnitExt), None),
-    AluOpcExth ->     (U1(UnitExt), None),
-    AluOpcExtuh ->    (U1(UnitExt), None),
+    AluOpcExtb ->     (U1(UnitExt), O4(ExtExtb)),
+    AluOpcExtub ->    (U1(UnitExt), O4(ExtExtub)),
+    AluOpcExth ->     (U1(UnitExt), O4(ExtExtw)),
+    AluOpcExtuh ->    (U1(UnitExt), O4(ExtExtuw)),
 
     /////////////////////////////////////////////////////////////////
 
@@ -111,9 +115,9 @@ object DecoderSpec {
 
     /* Shift - XLEN width */
 
-    AluOpcSll ->      (U1(UnitShift), None),
-    AluOpcSrl ->      (U1(UnitShift), None),
-    AluOpcSra ->      (U1(UnitShift), None),
+    AluOpcSll ->      (U1(UnitShift), O5(ShiftSll)),
+    AluOpcSrl ->      (U1(UnitShift), O5(ShiftSrl)),
+    AluOpcSra ->      (U1(UnitShift), O5(ShiftSra)),
 
     /* Select using remote alu condition (LAST cycle value) */
 
