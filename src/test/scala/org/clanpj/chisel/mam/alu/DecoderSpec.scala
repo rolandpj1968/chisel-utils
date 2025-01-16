@@ -13,6 +13,10 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
       dut.io.opc.poke(0.U)
       dut.clock.step()
       dut.io.unit.expect(0.U)
+
+      for (opc <- 0x00 to 0xff) {
+        printf("opc: 0x%2x\n", opc)
+      }
     }
   }
 
