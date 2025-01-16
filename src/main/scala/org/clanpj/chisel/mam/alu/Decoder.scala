@@ -150,9 +150,9 @@ object AluMamGenUnit extends Enumeration {
   val UnitMem0 = Value(0x1)
   val UnitMem1 = Value(0x2)
   val UnitConb0 = Value(0x3)
-  val UnitConb = Value(0x4)
-  val UnitConh = Value(0x5)
-  val UnitConw = Value(0x6)
+  val UnitConb = Value(0x5)
+  val UnitConh = Value(0x6)
+  val UnitConw = Value(0x7)
 }
 
 // // negate src0 == op[0]; negate src1 == ~(op[0]) && op != 0
