@@ -32,9 +32,7 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
         spec match {
           case None => {
             assert(inv)
-            if (opc < 0x40 || opc >= 0x80) {
-              dut.io.inv.expect(true.B)
-            }
+            dut.io.inv.expect(true.B)
           }
           case Some((nop, unit, opOpt, genOpt, binOpt, mamOpt, wrOpt)) => {
             assert(!inv)
@@ -45,10 +43,7 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
             binOpt.foreach((bin) => dut.io.bin.expect(bin))
             mamOpt.foreach((mam) => dut.io.mam.expect(mam))
             wrOpt.foreach((wr) => dut.io.wr.expect(wr))
-
-            if (opc < 0x40 || opc >= 0x80) {
-              dut.io.inv.expect(false.B)
-            }
+            dut.io.inv.expect(false.B)
           }
         }
       }

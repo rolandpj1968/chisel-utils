@@ -239,8 +239,11 @@ class Decoder extends Module {
   val unaryValid = Wire(Bool())
   unaryValid := (io.opc(5,0) === 0x5.U) || (io.opc(5,0) === 0xa.U) || (io.opc(5,3) === 2.U)
 
+  val binaryValid = Wire(Bool())
+  binaryValid := ((io.opc(5,4) === 0x0.U) && (io.opc(3,2) =/= 0x0.U) && (io.opc(3,0) =/= 0xf.U)) || (io.opc(5,3) === 0x3.U)
+
   val arithValid = Wire(Bool())
-  arithValid := unaryValid
+  arithValid := Mux(bin, binaryValid, unaryValid)
 
   val valid = Wire(Bool())
   valid := Mux(gen, genValid, arithValid)
