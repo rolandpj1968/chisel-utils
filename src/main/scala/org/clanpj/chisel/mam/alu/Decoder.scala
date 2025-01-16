@@ -104,10 +104,10 @@ object AluOpcode extends Enumeration {
   /* Icache constants */
 
   // Non-overlapping
-  val AluOpcConb0 =    Value(0xac)
-  val AluOpcConb1 =    Value(0xad)
-  val AluOpcConb2 =    Value(0xae)
-  val AluOpcConb3 =    Value(0xaf)
+  val AluOpcConb0 =    Value(0xb0)
+  val AluOpcConb1 =    Value(0xb1)
+  val AluOpcConb2 =    Value(0xb2)
+  val AluOpcConb3 =    Value(0xb3)
 
   // Overlapping b/h/w
   val AluOpcConb4 =    Value(0xb4)
@@ -147,7 +147,7 @@ object AluMamGenUnit extends Enumeration {
   val UnitAlu = Value(0x0)
   val UnitMem0 = Value(0x1)
   val UnitMem1 = Value(0x2)
-  val UnitConb0 = Value(0x3)
+  val UnitConb0 = Value(0x4)
   val UnitConb = Value(0x5)
   val UnitConh = Value(0x6)
   val UnitConw = Value(0x7)
@@ -232,6 +232,11 @@ class Decoder extends Module {
   bin := io.opc(6).asBool
   mam := gen && io.opc(6,5).orR
   wr := !(gen || bin) && (unit === AluUnit.UnitTos.id.U)
+
+  val genValid = Wire(Bool())
+  genValid := (io.opc(6,3) === 0.U) || (io.opc(6,2) === 8.U) || (io.opc(6,4) === 3.U)
+
+  inv := !genValid
 
   io.inv := inv
   io.nop := nop
