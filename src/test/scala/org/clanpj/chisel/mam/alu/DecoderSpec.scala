@@ -35,6 +35,7 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
           case Some((unit, opOpt)) => {
             assert(!inv)
             dut.io.unit.expect(unit)
+            opOpt.foreach((op) => dut.io.op.expect(op))
           }
         }
       }

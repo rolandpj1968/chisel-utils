@@ -5,8 +5,6 @@ import chisel3.util._
 // _root_ disambiguates from package chisel3.util.circt if user imports chisel3.util._
 import _root_.circt.stage.ChiselStage
 
-// TODO - shuffle these to improve decode efficiency,
-//   e.g. srcX1/op always in low bits
 object AluOpcode extends Enumeration {
 
   /////////////////////////////////////////////////////////////////
@@ -16,7 +14,7 @@ object AluOpcode extends Enumeration {
 
   val AluOpcNop =      Value(0x00)
 
-  val AluOpcNeg =      Value(0x07)
+  val AluOpcNeg =      Value(0x05)
 
   val AluOpcNot =      Value(0x0a)
 
