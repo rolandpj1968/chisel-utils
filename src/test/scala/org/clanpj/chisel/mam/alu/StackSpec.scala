@@ -26,14 +26,14 @@ class StackSpec extends AnyFreeSpec with Matchers {
 
         // Push a value
         dut.io.wEn.poke(true.B)
-        dut.io.newTosV.poke(7.U)
+        dut.io.nTosV.poke(7.U)
         dut.io.dITos.poke(1.U)
         dut.clock.step()
         dut.io.tosV.expect(7.U)
 
         // Push another value
         dut.io.wEn.poke(true.B)
-        dut.io.newTosV.poke(8.U)
+        dut.io.nTosV.poke(8.U)
         dut.io.dITos.poke(1.U)
         dut.clock.step()
         dut.io.tosV.expect(8.U)
@@ -41,7 +41,7 @@ class StackSpec extends AnyFreeSpec with Matchers {
 
         // Overwrite TOS
         dut.io.wEn.poke(true.B)
-        dut.io.newTosV.poke(9.U)
+        dut.io.nTosV.poke(9.U)
         dut.io.dITos.poke(0.U)
         dut.clock.step()
         dut.io.tosV.expect(9.U)
@@ -49,7 +49,7 @@ class StackSpec extends AnyFreeSpec with Matchers {
 
         // Push another value
         dut.io.wEn.poke(true.B)
-        dut.io.newTosV.poke(10.U)
+        dut.io.nTosV.poke(10.U)
         dut.io.dITos.poke(1.U)
         dut.clock.step()
         dut.io.tosV.expect(10.U)
@@ -57,7 +57,7 @@ class StackSpec extends AnyFreeSpec with Matchers {
 
         // Pop a value
         dut.io.wEn.poke(false.B)
-        dut.io.newTosV.poke(0.U)
+        dut.io.nTosV.poke(0.U)
         dut.io.dITos.poke(((1<<order)-1).U)
         dut.clock.step()
         dut.io.tosV.expect(9.U)
