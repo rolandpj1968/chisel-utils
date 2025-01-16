@@ -192,73 +192,7 @@ object ShiftOp extends Enumeration {
   val ShiftSra = Value(0x2)
 }
 
-// // negate src0 == op[0]; negate src1 == ~(op[0]) && op != 0
-// // slt[u] == op & 4
-// // Hrmmm, add1, add2, add4, add8
-// object AddOp extends ChiselEnum {
-//   val AddOp  = Value(0x0)
-//   val RSubOp = Value(0x1)
-//   val SubOp  = Value(0x2)
-//   val NegOp  = Value(0x3)
-//   val SltOp  = Value(0x4)
-//   val SltuOp = Value(0x6)
-// }
-
-// object ShiftOp extends ChiselEnum {
-//   val SllOp, SrlOp, SraOp = Value
-// }
-
-// // XorZ for seq*
-// object BitsOp extends ChiselEnum {
-//   val AndOp, OrOp, XorOp, XorZOp = Value
-// }
-
-// object ExtOp extends ChiselEnum {
-//   val ExtbOp, ExtubOp, ExthOp, ExtuhOp = Value
-// }
-
-// object AluSrc1 extends ChiselEnum {
-//   val Src1Nos, Src1Lit, Src1Alu, Src1Stk, Src1Reg, Src1Con = Value
-// }
-
-// object Src1LitX extends ChiselEnum {
-//   val LitX0, LitX1, LitX2, LitX4 = Value
-// }
-
-// object Src1AluX extends ChiselEnum {
-//   val AluX0, AluX1, AluX2, AluX3 = Value
-// }
-
-// object Src1StkX extends ChiselEnum {
-//   val StkX0, StkX1, StkX2, StkX3 = Value
-// }
-
-// object Src1RegX extends ChiselEnum {
-//   val RegX0, RegX1, RegX2, RegX3 = Value
-// }
-
-// object Src1ConX extends ChiselEnum {
-//   val ConXb0, ConXb1, ConXb2, ConXb3 = Value
-//   val ConXb4, ConXb5, ConXb6, ConXb7 = Value
-//   val ConXh0, ConXh1, ConXh2, ConXh3 = Value
-//   val ConXh4, ConXh5, ConXh6, ConXh7 = Value
-//   val ConXw0, ConXw1, ConXw2, ConXw3 = Value
-//   val ConXw4, ConXw5, ConXw6, ConXw7 = Value
-// }
-
 class Decoder extends Module {
-  import AluOpcode._
-  // import AluUnit._
-  // import AdderOp._
-  // import ShiftOp._
-  // import BitsOp._
-  // import ExtOp._
-  // import AluSrc1._
-  // import Src1LitX._
-  // import Src1AluX._
-  // import Src1StkX._
-  // import Src1RegX._
-  // import Src1ConX._
 
   val io = IO(new Bundle {
     val opc = Input(UInt(8.W))
@@ -266,8 +200,8 @@ class Decoder extends Module {
     val inv = Output(Bool()) // invalid opc
     val unit = Output(UInt(3.W))
     val op = Output(UInt(2.W))
-    val dtosm1 = Output(Bool())  // === binary op
-    val dtos1 = Output(Bool())   // === generating op
+    val gen = Output(Bool())   // === generating op, otherwise arithmetic
+    val bin = Output(Bool())  // === binary op, otherwise unary (only for arithmetic ops)
     val mam = Output(Bool()) // === generated from mother ship
     val wr = Output(Bool()) // reg write - reg number in "op"
   })
@@ -275,27 +209,28 @@ class Decoder extends Module {
   val inv = Wire(Bool())
   val unit = Wire(UInt(3.W));
   val op = Wire(UInt(2.W))
-  val dtosm1 = Wire(Bool())
-  val dtos1 = Wire(Bool())
+  val gen = Wire(Bool())
+  val bin = Wire(Bool())
   val mam = Wire(Bool())
   val wr = Wire(Bool())
 
   inv := false.B
   unit := 0.U
   op := 0.U
-  dtosm1 := false.B
-  dtos1 := false.B
+  gen := false.B
+  bin := false.B
   mam := false.B
   wr := false.B
 
   unit := io.opc(4,2)
   op := io.opc(1,0)
+  gen := io.opc(7).asBool
 
   io.inv := inv
   io.unit := unit
   io.op := op
-  io.dtosm1 := dtosm1
-  io.dtos1 := dtos1
+  io.gen := gen
+  io.bin := bin
   io.mam := mam
   io.wr := wr
 }
