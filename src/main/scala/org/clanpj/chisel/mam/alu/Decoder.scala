@@ -7,126 +7,7 @@ import _root_.circt.stage.ChiselStage
 
 // TODO - shuffle these to improve decode efficiency,
 //   e.g. srcX1/op always in low bits
-object AluOpcode extends ChiselEnum {
-
-  /////////////////////////////////////////////////////////////////
-
-  // Unary ops dtos == 0
-  // src0 == 0, src1 == TOS
-
-  val AluOpcNop =      Value(0x00.U)
-
-  val AluOpcNeg =      Value(0x07.U)
-
-  val AluOpcNot =      Value(0x08.U)
-
-  /* Register write non-popping */
-
-  val AluOpcWrR0 =     Value(0x10.U)
-  val AluOpcWrR1 =     Value(0x11.U)
-  val AluOpcWrR2 =     Value(0x12.U)
-  val AluOpcWrR3 =     Value(0x13.U)
-
-  /* Extensions and Truncations */
-
-  val AluOpcExtb =     Value(0x14.U)
-  val AluOpcExtub =    Value(0x15.U)
-  val AluOpcExth =     Value(0x16.U)
-  val AluOpcExtuh =    Value(0x17.U)
-
-  /////////////////////////////////////////////////////////////////
-
-  // Binary ops dtos == -1
-  // src0/lhs/x == NOS, src1/rhs/y == TOS
-
-  /* Integer Add/Slt XLEN width */
-
-  val AluOpcAdd =      Value(0x44.U)
-  val AluOpcSub =      Value(0x45.U)
-  val AluOpcSlt =      Value(0x46.U)
-  val AluOpcSltu =     Value(0x47.U)
-
-  /* Bits - XLEN width */
-
-  val AluOpcAnd =      Value(0x48.U)
-  val AluOpcOr =       Value(0x49.U)
-  val AluOpcXor =      Value(0x4a.U)
-  val AluOpcSeq =      Value(0x4b.U)
-
-  /* Shift - XLEN width */
-
-  val AluOpcSll =      Value(0x4c.U)
-  val AluOpcSrl =      Value(0x4d.U)
-  val AluOpcSra =      Value(0x4e.U)
-
-  /* Select using remote alu condition (LAST cycle value) */
-
-  val AluOpcSelzA0 =   Value(0x60.U)
-  val AluOpcSelzA1 =   Value(0x61.U)
-  val AluOpcSelzA2 =   Value(0x62.U)
-  val AluOpcSelzA3 =   Value(0x63.U)
-  val AluOpcSelnzA0 =  Value(0x64.U)
-  val AluOpcSelnzA1 =  Value(0x65.U)
-  val AluOpcSelnzA2 =  Value(0x66.U)
-  val AluOpcSelnzA3 =  Value(0x67.U)
-
-  ////////////////////////////////////////////////////////////////////
-
-  // Generating ops - dtos == 1
-
-  /* Stack read */
-  val AluOpcRdS0 =     Value(0x80.U)
-  val AluOpcRdS1 =     Value(0x81.U)
-  val AluOpcRdS2 =     Value(0x82.U)
-  val AluOpcRdS3 =     Value(0x83.U)
-
-  /* Register read */
-  val AluOpcRdR0 =     Value(0x84.U)
-  val AluOpcRdR1 =     Value(0x85.U)
-  val AluOpcRdR2 =     Value(0x86.U)
-  val AluOpcRdR3 =     Value(0x87.U)
-
-  /* Remote alu TOS access (LAST cycle result) */
-  val AluOpcRdA0 =     Value(0x88.U)
-  val AluOpcRdA1 =     Value(0x89.U)
-  val AluOpcRdA2 =     Value(0x8a.U)
-  val AluOpcRdA3 =     Value(0x8b.U)
-
-  /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
-  // val AluOpcRdM0v0 =   Value(0x50.U)
-  // val AluOpcRdM0v1 =   Value(0x51.U)
-  // val AluOpcRdM1v0 =   Value(0x52.U)
-  // val AluOpcRdM1v1 =   Value(0x53.U)
-  // TODO addr's too?
-
-  /* Icache constants */
-
-  // Non-overlapping
-  val AluOpcConb0 =    Value(0xa0.U)
-  val AluOpcConb1 =    Value(0xa1.U)
-  val AluOpcConb2 =    Value(0xa2.U)
-  val AluOpcConb3 =    Value(0xa3.U)
-
-  // Overlapping b/h/w
-  val AluOpcConb4 =    Value(0xa4.U)
-  val AluOpcConb5 =    Value(0xa5.U)
-  val AluOpcConb6 =    Value(0xa6.U)
-  val AluOpcConb7 =    Value(0xa7.U)
-  val AluOpcConh0 =    Value(0xa8.U)
-  val AluOpcConh1 =    Value(0xa9.U)
-  val AluOpcConh2 =    Value(0xaa.U)
-  val AluOpcConh3 =    Value(0xab.U)
-  val AluOpcConw0 =    Value(0xac.U)
-  val AluOpcConw1 =    Value(0xad.U)
-  val AluOpcConw2 =    Value(0xae.U)
-  val AluOpcConw3 =    Value(0xaf.U)
-
-  val AluOpcFF   =     Value(0xff.U) // Enforce 8-bit width
-}
-
-// TODO - shuffle these to improve decode efficiency,
-//   e.g. srcX1/op always in low bits
-object AluOpcode1 extends Enumeration {
+object AluOpcode extends Enumeration {
 
   /////////////////////////////////////////////////////////////////
 
@@ -180,18 +61,20 @@ object AluOpcode1 extends Enumeration {
 
   /* Select using remote alu condition (LAST cycle value) */
 
-  val AluOpcSelzA0 =   Value(0x60)
-  val AluOpcSelzA1 =   Value(0x61)
-  val AluOpcSelzA2 =   Value(0x62)
-  val AluOpcSelzA3 =   Value(0x63)
-  val AluOpcSelnzA0 =  Value(0x64)
-  val AluOpcSelnzA1 =  Value(0x65)
-  val AluOpcSelnzA2 =  Value(0x66)
-  val AluOpcSelnzA3 =  Value(0x67)
+  val AluOpcSelzA0 =   Value(0x58)
+  val AluOpcSelzA1 =   Value(0x59)
+  val AluOpcSelzA2 =   Value(0x5a)
+  val AluOpcSelzA3 =   Value(0x5b)
+  val AluOpcSelnzA0 =  Value(0x5c)
+  val AluOpcSelnzA1 =  Value(0x5d)
+  val AluOpcSelnzA2 =  Value(0x5e)
+  val AluOpcSelnzA3 =  Value(0x5f)
 
   ////////////////////////////////////////////////////////////////////
 
   // Generating ops - dtos == 1
+
+  // Local
 
   /* Stack read */
   val AluOpcRdS0 =     Value(0x80)
@@ -205,48 +88,72 @@ object AluOpcode1 extends Enumeration {
   val AluOpcRdR2 =     Value(0x86)
   val AluOpcRdR3 =     Value(0x87)
 
+  // Remote
+
   /* Remote alu TOS access (LAST cycle result) */
-  val AluOpcRdA0 =     Value(0x88)
-  val AluOpcRdA1 =     Value(0x89)
-  val AluOpcRdA2 =     Value(0x8a)
-  val AluOpcRdA3 =     Value(0x8b)
+  val AluOpcRdA0 =     Value(0xa0)
+  val AluOpcRdA1 =     Value(0xa1)
+  val AluOpcRdA2 =     Value(0xa2)
+  val AluOpcRdA3 =     Value(0xa3)
 
   /* (Remote) Mem unit value access (THIS cycle result - if it's ready, otherwise stall) */
-  // val AluOpcRdM0v0 =   Value(0x50)
-  // val AluOpcRdM0v1 =   Value(0x51)
-  // val AluOpcRdM1v0 =   Value(0x52)
-  // val AluOpcRdM1v1 =   Value(0x53)
+  // val AluOpcRdM0v0 =   Value(0xa4)
+  // val AluOpcRdM0v1 =   Value(0xa5)
+  // val AluOpcRdM1v0 =   Value(0xa6)
+  // val AluOpcRdM1v1 =   Value(0xa7)
   // TODO addr's too?
 
   /* Icache constants */
 
   // Non-overlapping
-  val AluOpcConb0 =    Value(0xa0)
-  val AluOpcConb1 =    Value(0xa1)
-  val AluOpcConb2 =    Value(0xa2)
-  val AluOpcConb3 =    Value(0xa3)
+  val AluOpcConb0 =    Value(0xac)
+  val AluOpcConb1 =    Value(0xad)
+  val AluOpcConb2 =    Value(0xae)
+  val AluOpcConb3 =    Value(0xaf)
 
   // Overlapping b/h/w
-  val AluOpcConb4 =    Value(0xa4)
-  val AluOpcConb5 =    Value(0xa5)
-  val AluOpcConb6 =    Value(0xa6)
-  val AluOpcConb7 =    Value(0xa7)
-  val AluOpcConh0 =    Value(0xa8)
-  val AluOpcConh1 =    Value(0xa9)
-  val AluOpcConh2 =    Value(0xaa)
-  val AluOpcConh3 =    Value(0xab)
-  val AluOpcConw0 =    Value(0xac)
-  val AluOpcConw1 =    Value(0xad)
-  val AluOpcConw2 =    Value(0xae)
-  val AluOpcConw3 =    Value(0xaf)
+  val AluOpcConb4 =    Value(0xb4)
+  val AluOpcConb5 =    Value(0xb5)
+  val AluOpcConb6 =    Value(0xb6)
+  val AluOpcConb7 =    Value(0xb7)
+  val AluOpcConh0 =    Value(0xb8)
+  val AluOpcConh1 =    Value(0xb9)
+  val AluOpcConh2 =    Value(0xba)
+  val AluOpcConh3 =    Value(0xbb)
+  val AluOpcConw0 =    Value(0xbc)
+  val AluOpcConw1 =    Value(0xbd)
+  val AluOpcConw2 =    Value(0xbe)
+  val AluOpcConw3 =    Value(0xbf)
 }
 
-// // Note: sel[n]z is 3-operand; third operand is ALU number in src1X
-// object AluUnit extends ChiselEnum {
-//   val UnitNop = Value(0x0)
-//   val UnitAdd = Value(0x1)
-//   val UnitBits, UnitShift, UnitExt, UnitSel, UnitInv = Value
-// }
+object AluUnit extends Enumeration {
+  type AluUnit = Value
+  val UnitZero = Value(0x0)
+  val UnitAdd = Value(0x1)
+  val UnitBits = Value(0x2)
+  val UnitShift = Value(0x3)
+  val UnitTos = Value(0x4)
+  val UnitExt = Value(0x5)
+  val UnitSelz = Value(0x6)
+  val UnitSelnz = Value(0x7)
+}
+
+object AluGenUnit extends Enumeration {
+  type AluGenUnit = Value
+  val UnitStack = Value(0x0)
+  val UnitReg = Value(0x1)
+}
+
+object AluMamGenUnit extends Enumeration {
+  type AluMamGenUnit = Value
+  val UnitAlu = Value(0x0)
+  val UnitMem0 = Value(0x1)
+  val UnitMem1 = Value(0x2)
+  val UnitConb0 = Value(0x3)
+  val UnitConb = Value(0x4)
+  val UnitConh = Value(0x5)
+  val UnitConw = Value(0x6)
+}
 
 // // negate src0 == op[0]; negate src1 == ~(op[0]) && op != 0
 // // slt[u] == op & 4
@@ -317,23 +224,23 @@ class Decoder extends Module {
   // import Src1ConX._
 
   val io = IO(new Bundle {
-    val opcRaw = Input(UInt(8.W))
+    val opc = Input(UInt(8.W))
+
     val inv = Output(Bool()) // invalid opc
     val unit = Output(UInt(3.W))
     val op = Output(UInt(2.W))
     val dtosm1 = Output(Bool())  // === binary op
     val dtos1 = Output(Bool())   // === generating op
+    val mam = Output(Bool()) // === generated from mother ship
     val wr = Output(Bool()) // reg write - reg number in "op"
   })
-
-  // Ignore WARN/"valid" - range with extensions is larger
-  val (opc, valid) = AluOpcode.safe(io.opcRaw)
 
   val inv = Wire(Bool())
   val unit = Wire(UInt(3.W));
   val op = Wire(UInt(2.W))
   val dtosm1 = Wire(Bool())
   val dtos1 = Wire(Bool())
+  val mam = Wire(Bool())
   val wr = Wire(Bool())
 
   inv := false.B
@@ -341,7 +248,11 @@ class Decoder extends Module {
   op := 0.U
   dtosm1 := false.B
   dtos1 := false.B
+  mam := false.B
   wr := false.B
+
+  unit := io.opc(4,2)
+  op := io.opc(1,0)
 
   // TODO - greatly simplify
   // switch (opc) {
@@ -494,6 +405,7 @@ class Decoder extends Module {
   io.op := op
   io.dtosm1 := dtosm1
   io.dtos1 := dtos1
+  io.mam := mam
   io.wr := wr
 }
 

@@ -29,9 +29,9 @@ class Alu(n: Int) extends Module {
 
   val decoder = Module(new Decoder)
 
-  decoder.io.opcRaw := 0.U
+  decoder.io.opc := 0.U
   when (io.enable) {
-    decoder.io.opcRaw := io.opc
+    decoder.io.opc := io.opc
   }
 
   // val regfile = Module(new RegFile(n, 2/*^2*/))
