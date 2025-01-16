@@ -19,11 +19,10 @@ class Stack(n: Int, order: Int) extends Module {
     val i = Input(Bool())
     val v = Output(UInt(n.W))
     val wEn = Input(Bool())
-    val newTosV = Input(UInt(n.W))
+    val nTosV = Input(UInt(n.W))
     val dITos = Input(UInt(order.W))
     val tosV = Output(UInt(n.W))
     val nosV = Output(UInt(n.W))
-    val tosVNext = Output(UInt(n.W))
   })
 
   // top-of-stack index; full stack
@@ -38,7 +37,6 @@ class Stack(n: Int, order: Int) extends Module {
   io.v := 0.U
   io.tosV := 0.U
   io.nosV := 0.U
-  io.tosVNext := 0.U
 
   when (io.en) {
 
@@ -55,10 +53,8 @@ class Stack(n: Int, order: Int) extends Module {
     val iTosNext = iTos + io.dITos
     val iNosNext = iNos + io.dITos
 
-    io.tosVNext := stack(iTosNext)
-
     when (io.wEn) {
-      stack(iTosNext) := io.newTosV
+      stack(iTosNext) := io.nTosV
     }
 
     iTos := iTosNext

@@ -16,7 +16,7 @@ class RegFile(n: Int, order: Int) extends Module {
   val io = IO(new Bundle {
     val en = Input(Bool())
     val wEn = Input(Bool())
-    val wVal = Input(UInt(n.W))
+    val wV = Input(UInt(n.W))
     val i = Input(UInt(order.W))
     val v = Output(UInt(n.W))
   })
@@ -27,7 +27,7 @@ class RegFile(n: Int, order: Int) extends Module {
   io.v := Mux(io.en, 0x0.U, regs(io.i))
 
   when (io.en && io.wEn) {
-    regs(io.i) := io.wVal
+    regs(io.i) := io.wV
   }
 }
 
