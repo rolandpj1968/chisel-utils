@@ -163,6 +163,14 @@ object IndexOp extends Enumeration {
   val Index3 = Value(0x3)
 }
 
+object AdderOp extends Enumeration {
+  type AdderOp = Value
+  val AdderAdd = Value(0x0)
+  val AdderSub = Value(0x1)
+  val AdderSlt = Value(0x2)
+  val AdderSltu = Value(0x3)
+}
+
 // // negate src0 == op[0]; negate src1 == ~(op[0]) && op != 0
 // // slt[u] == op & 4
 // // Hrmmm, add1, add2, add4, add8
