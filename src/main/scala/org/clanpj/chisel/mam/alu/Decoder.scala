@@ -230,6 +230,8 @@ class Decoder extends Module {
   op := io.opc(1,0)
   gen := io.opc(7).asBool
   bin := io.opc(6).asBool
+  mam := gen && io.opc(6,5).orR
+  wr := !(gen || bin) && (unit === AluUnit.UnitTos.id.U)
 
   io.inv := inv
   io.nop := nop
