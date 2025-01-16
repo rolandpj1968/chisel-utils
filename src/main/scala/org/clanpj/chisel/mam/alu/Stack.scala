@@ -16,7 +16,7 @@ class Stack(n: Int, order: Int) extends Module {
   val io = IO(new Bundle {
     val en = Input(Bool())
     val rEn = Input(Bool())
-    val i = Input(Bool())
+    val i = Input(UInt(order.W))
     val v = Output(UInt(n.W))
     val wEn = Input(Bool())
     val nTosV = Input(UInt(n.W))

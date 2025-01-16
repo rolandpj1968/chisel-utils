@@ -99,8 +99,15 @@ class Alu(n: Int) extends Module {
   extUnit.io.op := decoder.io.op
   extUnit.io.src := src1
 
+  val selUnitV = Wire(UInt(n.W))
+  selUnitV := 0.U
+  when (arithGenEn && (unitOH(UnitSelz.id) || unitOH(UnitSelnz.id))) {
+    val aluNz = io.mamV.orR
+    selUnitV := Mux(aluNz === unitOH(UnitSelz.id), src0, src1) // TODO check
+  }
+
   val vArith = Wire(UInt(n.W))
-  vArith := adderUnit.io.v | bitsUnit.io.v | tosUnitV | extUnit.io.v
+  vArith := adderUnit.io.v | bitsUnit.io.v | tosUnitV | extUnit.io.v | selUnitV
 
   val v = Wire(UInt(n.W))
   v := vGen | vArith
