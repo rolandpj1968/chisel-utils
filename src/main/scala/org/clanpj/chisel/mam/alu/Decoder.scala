@@ -198,6 +198,7 @@ class Decoder extends Module {
     val opc = Input(UInt(8.W))
 
     val inv = Output(Bool()) // invalid opc
+    val nop = Output(Bool())
     val unit = Output(UInt(3.W))
     val op = Output(UInt(2.W))
     val gen = Output(Bool()) // === generating op, otherwise arithmetic
@@ -207,6 +208,7 @@ class Decoder extends Module {
   })
 
   val inv = Wire(Bool())
+  val nop = Wire(Bool())
   val unit = Wire(UInt(3.W));
   val op = Wire(UInt(2.W))
   val gen = Wire(Bool())
@@ -215,6 +217,7 @@ class Decoder extends Module {
   val wr = Wire(Bool())
 
   inv := false.B
+  nop := false.B
   unit := 0.U
   op := 0.U
   gen := false.B
@@ -222,12 +225,14 @@ class Decoder extends Module {
   mam := false.B
   wr := false.B
 
+  nop := (~(io.opc.orR)).asBool
   unit := io.opc(4,2)
   op := io.opc(1,0)
   gen := io.opc(7).asBool
   bin := io.opc(6).asBool
 
   io.inv := inv
+  io.nop := nop
   io.unit := unit
   io.op := op
   io.gen := gen
