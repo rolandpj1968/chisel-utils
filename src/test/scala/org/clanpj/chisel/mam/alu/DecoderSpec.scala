@@ -15,7 +15,28 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
       dut.io.unit.expect(0.U)
 
       for (opc <- 0x00 to 0xff) {
-        printf("opc: 0x%2x\n", opc)
+        //println(f"opc: 0x$opc%2x")
+        val opcEnumOpt = try {
+          Some(AluOpcode(opc))
+        } catch {
+          case _: NoSuchElementException => None
+        }
+        val (inv, spec) = opcEnumOpt match {
+          case None => (true, None)
+          case Some(opcEnum) => (false, Some(DecoderSpec.spec(opcEnum)))
+        }
+        println(f"opc: 0x$opc%2x spec inv / spec = $inv / $spec")
+        assert(inv == spec.isEmpty)
+
+        dut.io.opc.poke(opc.U)
+        dut.clock.step()
+        spec match {
+          case None => assert(inv)
+          case Some(unit) => {
+            assert(!inv)
+            dut.io.unit.expect(unit)
+          }
+        }
       }
     }
   }
@@ -49,10 +70,10 @@ object DecoderSpec {
 
     /* Register write non-popping */
 
-    AluOpcWrR0 ->     (U1(UnitZero)),
-    AluOpcWrR1 ->     (U1(UnitZero)),
-    AluOpcWrR2 ->     (U1(UnitZero)),
-    AluOpcWrR3 ->     (U1(UnitZero)),
+    AluOpcWrR0 ->     (U1(UnitTos)),
+    AluOpcWrR1 ->     (U1(UnitTos)),
+    AluOpcWrR2 ->     (U1(UnitTos)),
+    AluOpcWrR3 ->     (U1(UnitTos)),
 
     /* Extensions and Truncations */
 
