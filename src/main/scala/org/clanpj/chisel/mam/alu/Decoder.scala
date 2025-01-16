@@ -18,7 +18,7 @@ object AluOpcode extends Enumeration {
 
   val AluOpcNeg =      Value(0x07)
 
-  val AluOpcNot =      Value(0x08)
+  val AluOpcNot =      Value(0x0a)
 
   /* Register write non-popping */
 
@@ -169,6 +169,14 @@ object AdderOp extends Enumeration {
   val AdderSub = Value(0x1)
   val AdderSlt = Value(0x2)
   val AdderSltu = Value(0x3)
+}
+
+object BitsOp extends Enumeration {
+  type BitsOp = Value
+  val BitsAnd = Value(0x0)
+  val BitsOr = Value(0x1)
+  val BitsXor = Value(0x2)
+  val BitsSeq = Value(0x3)
 }
 
 // // negate src0 == op[0]; negate src1 == ~(op[0]) && op != 0

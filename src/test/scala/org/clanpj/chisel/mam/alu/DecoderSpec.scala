@@ -50,6 +50,7 @@ object DecoderSpec {
   import AluMamGenUnit._
   import IndexOp._
   import AdderOp._
+  import BitsOp._
 
   def N[T] = None
   def S[T](v: T) = Some(v)
@@ -60,6 +61,7 @@ object DecoderSpec {
 
   def O1(u: IndexOp) = Some(u.id.U(2.W))
   def O2(u: AdderOp) = Some(u.id.U(2.W))
+  def O3(u: BitsOp) = Some(u.id.U(2.W))
 
   val spec = Map(
     /////////////////////////////////////////////////////////////////
@@ -71,7 +73,7 @@ object DecoderSpec {
 
     AluOpcNeg ->      (U1(UnitAdd), O2(AdderSub)),
 
-    AluOpcNot ->      (U1(UnitBits), None),
+    AluOpcNot ->      (U1(UnitBits), O3(BitsXor)),
 
     /* Register write non-popping */
 
@@ -101,10 +103,10 @@ object DecoderSpec {
 
     /* Bits - XLEN width */
 
-    AluOpcAnd ->      (U1(UnitBits), None),
-    AluOpcOr ->       (U1(UnitBits), None),
-    AluOpcXor ->      (U1(UnitBits), None),
-    AluOpcSeq ->      (U1(UnitBits), None),
+    AluOpcAnd ->      (U1(UnitBits), O3(BitsAnd)),
+    AluOpcOr ->       (U1(UnitBits), O3(BitsOr)),
+    AluOpcXor ->      (U1(UnitBits), O3(BitsXor)),
+    AluOpcSeq ->      (U1(UnitBits), O3(BitsSeq)),
 
     /* Shift - XLEN width */
 
