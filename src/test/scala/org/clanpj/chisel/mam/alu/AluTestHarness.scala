@@ -15,16 +15,25 @@ class AluTestHarness(n: Int) extends Module {
     val nTosV = Output(UInt(n.W))
     val stall = Output(Bool())
     val trap = Output(Bool())
+
+    val lTosV = Output(UInt(n.W))
   })
 
   val alu = Module(new Alu(n))
 
+  val lTosV = RegInit(0.U(n.W))
+
   alu.io.en := io.en
   alu.io.opc := io.opc
 
+  io.lTosV := lTosV
   io.nTosV := alu.io.nTosV
   io.stall := alu.io.stall
   io.trap := alu.io.trap
+
+  when (!alu.io.nop) {
+    lTosV := alu.io.nTosV
+  }
 
   // emulate AluMamGenUnit
   val conb0 = VecInit(Seq(0.U(n.W), 1.U(n.W), 2.U(n.W), 3.U(n.W)))

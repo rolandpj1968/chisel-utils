@@ -22,6 +22,7 @@ class Alu(n: Int) extends Module {
     val mamOp = Output(UInt(2.W))
     val mamV = Input(UInt(n.W))
 
+    val nop = Output(Bool()) // true => don't update from nTosV
     val nTosV = Output(UInt(n.W))
 
     val stall = Output(Bool())
@@ -118,6 +119,8 @@ class Alu(n: Int) extends Module {
 
   regfile.io.wV := v
   stack.io.nTosV := v
+
+  io.nop := decoder.io.nop
   io.nTosV := v
 
   printf("                                 RPJ: tosV[@0x%x] is 0x%x, nosV[@0x%x] is 0x%x, dITos is 0x%x, v is 0x%x, io.nTosV is 0x%x\n", stack.io.iTos, stack.io.tosV, stack.io.iNos, stack.io.nosV, stack.io.dITos, v, io.nTosV)

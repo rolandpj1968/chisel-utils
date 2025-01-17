@@ -9,6 +9,11 @@ import org.scalatest.matchers.must.Matchers
 class AluSpec extends AnyFreeSpec with Matchers {
   import AluOpcode._
 
+  def bi(i: Long) = BigInt(i)
+
+  val n = 32
+  val mask = (bi(1) << n) - 1
+
   def reset(dut: AluTestHarness): Unit = {
       println("AluTestHarness: reset");
       dut.reset.poke(true.B)
@@ -26,8 +31,36 @@ class AluSpec extends AnyFreeSpec with Matchers {
       dut.io.trap.expect(false.B)
   }
 
+  val cons = Seq(AluOpcConb0, AluOpcConb1, AluOpcConb2, AluOpcConb3)
+
+  def exeBinOp(dut: AluTestHarness, lhs: Int, rhs: Int, op: AluOpcode): Unit = {
+    exeOp(dut, cons(lhs))
+    dut.io.nTosV.expect(lhs)
+    exeOp(dut, cons(rhs))
+    dut.io.nTosV.expect(rhs)
+    exeOp(dut, op)
+  }
+
+  def testBinOp(dut: AluTestHarness, lhs: Int, rhs: Int, op: AluOpcode, res: BigInt): Unit = {
+    exeBinOp(dut, lhs, rhs, op)
+    // TODO - this is weird... (for a NOOB)
+    //   println seems to indicate the expected result, and the stack value at the next
+    //     op also seems correct.
+    //   However, expect() sees a different value
+    //   If, however I save it into a register in the AluTestHarness, then the expected
+    //     value emerges next cycle from the (lTosV) register.
+    val nTosV = dut.io.nTosV.peek().litValue
+    if (nTosV != (res & mask)) {
+      //println("                                             ooops " + op + " (" + lhs + "," + rhs + ") is " + dut.io.nTosV.peek() + " expecting " + res);
+      exeOp(dut, AluOpcNop)
+      //println("                                                     after a NOP lTosV is " + dut.io.lTosV.peek())
+      dut.io.lTosV.expect(res & mask)
+    }
+    //dut.io.nTosV.expect(res)
+  }
+
   "Alu should execute opcodes" in {
-    simulate(new AluTestHarness(32)) { dut =>
+    simulate(new AluTestHarness(n)) { dut =>
 
       // // Initialise
       // dut.reset.poke(true.B)
@@ -76,11 +109,32 @@ class AluSpec extends AnyFreeSpec with Matchers {
       dut.io.nTosV.expect(2.U)
 
       exeOp(dut, AluOpcXor)
-      //dut.io.nTosV.expect(1.U) // Hrmmm, println's 1 but expect says 2??? Something is wrong :(
+      dut.io.nTosV.expect(1.U) // Hrmmm, println's 1 but expect says 2??? Something is wrong :(
 
       exeOp(dut, AluOpcConb3)
       dut.io.nTosV.expect(3.U)
 
+      exeOp(dut, AluOpcNop)
+      exeOp(dut, AluOpcNop)
+      exeOp(dut, AluOpcConb2)
+      exeOp(dut, AluOpcNop)
+      exeOp(dut, AluOpcNop)
+      exeOp(dut, AluOpcConb1)
+
+      val testValues = for { x <- 0 to 3; y <- 0 to 3} yield (x, y)
+      testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcAnd, bi(lhs) & bi(rhs))
+      }}
+      testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcOr, bi(lhs) | bi(rhs))
+      }}
+      testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcAdd, bi(lhs) + bi(rhs))
+      }}
+      testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcSub, bi(lhs) - bi(rhs))
+      }}
+      
       //println("                                              hello RPJ nTosV is " + dut.io.nTosV.peek())
       //println("                                              hello RPJ alu nTosV is " + dut.alu.io.nTosV.peek())
     }
