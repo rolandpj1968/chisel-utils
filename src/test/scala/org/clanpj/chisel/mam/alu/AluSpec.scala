@@ -138,9 +138,9 @@ class AluSpec extends AnyFreeSpec with Matchers {
       testValues.map { case (lhs, rhs) => {
         testBinOp(dut, lhs, rhs, AluOpcSlt, V(if (lhs < rhs) 1 else 0))
       }}
-      // testValues.map { case (lhs, rhs) => {
-      //   testBinOp(dut, lhs, rhs, AluOpcSltu, V(if (V(lhs) < V(rhs)) 1 else 0))
-      // }}
+      testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcSltu, V(if (V(lhs) < V(rhs)) 1 else 0))
+      }}
 
       // Binary ops twice
 
