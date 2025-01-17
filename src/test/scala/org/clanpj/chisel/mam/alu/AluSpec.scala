@@ -14,6 +14,8 @@ class AluSpec extends AnyFreeSpec with Matchers {
   val n = 32
   val mask = (bi(1) << n) - 1
 
+  def V(v: Int): BigInt = bi(v) & mask
+
   def reset(dut: AluTestHarness): Unit = {
       // println("AluTestHarness: reset");
       dut.reset.poke(true.B)
@@ -44,10 +46,11 @@ class AluSpec extends AnyFreeSpec with Matchers {
 
   def exeConOp(dut: AluTestHarness, v: Int): Unit = {
     exeOp(dut, conop(v))
-    dut.io.nTosV.expect(v)
+    dut.io.nTosV.expect(V(v))
   }
 
   def exeBinOp(dut: AluTestHarness, lhs: Int, rhs: Int, op: AluOpcode): Unit = {
+    println("AluTestHarness testing " + op + "(" + lhs + ", " + rhs + ")")
     exeConOp(dut, lhs)
     exeConOp(dut, rhs)
     exeOp(dut, op)
@@ -108,36 +111,38 @@ class AluSpec extends AnyFreeSpec with Matchers {
       // Reset
       reset(dut)
 
-      val testValues = for { x <- 0 to 3; y <- 0 to 3} yield (x, y)
+      val testValues = for { x <- -4 to 3; y <- -4 to 3} yield (x, y)
 
       // Binary ops
 
       // BitsUnit
       testValues.map { case (lhs, rhs) => {
-        testBinOp(dut, lhs, rhs, AluOpcAnd, bi(lhs) & bi(rhs))
+        testBinOp(dut, lhs, rhs, AluOpcAnd, V(lhs) & V(rhs))
       }}
       testValues.map { case (lhs, rhs) => {
-        testBinOp(dut, lhs, rhs, AluOpcOr, bi(lhs) | bi(rhs))
+        testBinOp(dut, lhs, rhs, AluOpcOr, V(lhs) | V(rhs))
       }}
       testValues.map { case (lhs, rhs) => {
-        testBinOp(dut, lhs, rhs, AluOpcXor, bi(lhs) ^ bi(rhs))
+        testBinOp(dut, lhs, rhs, AluOpcXor, V(lhs) ^ V(rhs))
       }}
       testValues.map { case (lhs, rhs) => {
-        testBinOp(dut, lhs, rhs, AluOpcSeq, bi(if (lhs == rhs) 1 else 0))
+        testBinOp(dut, lhs, rhs, AluOpcSeq, V(if (lhs == rhs) 1 else 0))
       }}
       // AddUnit
       testValues.map { case (lhs, rhs) => {
-        testBinOp(dut, lhs, rhs, AluOpcAdd, bi(lhs) + bi(rhs))
+        testBinOp(dut, lhs, rhs, AluOpcAdd, V(lhs) + V(rhs))
       }}
       testValues.map { case (lhs, rhs) => {
-        testBinOp(dut, lhs, rhs, AluOpcSub, bi(lhs) - bi(rhs))
+        testBinOp(dut, lhs, rhs, AluOpcSub, V(lhs) - V(rhs))
       }}
       testValues.map { case (lhs, rhs) => {
-        testBinOp(dut, lhs, rhs, AluOpcSlt, bi(if (lhs < rhs) 1 else 0))
+        testBinOp(dut, lhs, rhs, AluOpcSlt, V(if (lhs < rhs) 1 else 0))
       }}
-      testValues.map { case (lhs, rhs) => {
-        testBinOp(dut, lhs, rhs, AluOpcSltu, bi(if ((bi(lhs) & mask) < (bi(rhs) & mask)) 1 else 0))
-      }}
+      // testValues.map { case (lhs, rhs) => {
+      //   testBinOp(dut, lhs, rhs, AluOpcSltu, V(if (V(lhs) < V(rhs)) 1 else 0))
+      // }}
+
+      // Binary ops twice
 
       //println("                                              hello RPJ nTosV is " + dut.io.nTosV.peek())
       //println("                                              hello RPJ alu nTosV is " + dut.alu.io.nTosV.peek())

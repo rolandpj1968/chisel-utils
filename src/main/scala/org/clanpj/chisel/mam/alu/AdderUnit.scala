@@ -43,9 +43,10 @@ class AdderUnit(n: Int) extends Module {
 
     io.v := adder.io.sum
     when (io.op === AdderSltu.id.U) {
-      io.v := adder.io.sum(n-1)
+      io.v := adder.io.cout//adder.io.sum(n-1)
     } .elsewhen(io.op === AdderSlt.id.U) {
-      io.v := adder.io.sum(n-1) | (src0(n-1) & ~(src1(n-1))) // TODO? Check
+      // io.v := (io.src0(n-1) ^ io.src1(n-1)) & ~(io.src1(n-1) ^ adder.io.sum(n-1)) // TODO? Check
+      io.v := (io.src0(n-1) & ~io.src1(n-1)) | (~(io.src0(n-1) ^ io.src1(n-1)) & adder.io.sum(n-1)) // TODO? Check
     }
   }
 }
