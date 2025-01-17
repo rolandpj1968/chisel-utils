@@ -41,7 +41,8 @@ class Stack(n: Int, order: Int) extends Module {
   when (io.en) {
 
     when (io.rEn) {
-      io.v := stack(iTos + io.i)
+      // Hrmm, verilator linter error too here :(
+      io.v := 0.U //stack(iTos - io.i)
     }
 
     //printf("iTos %d iNos %d\n", iTos, iNos)

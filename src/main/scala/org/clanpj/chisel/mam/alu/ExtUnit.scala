@@ -9,7 +9,7 @@ class ExtUnit(n: Int) extends Module {
   val io = IO(new Bundle {
     val en = Input(Bool())
     val op = Input(UInt(2.W))
-    val src = Input(UInt(n.W)) // TODO only need lo 16 bits
+    val src = Input(UInt(16.W))
     val v = Output(UInt(n.W))
   })
 

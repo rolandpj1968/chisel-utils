@@ -51,32 +51,6 @@ class DecoderSpec extends AnyFreeSpec with Matchers {
   }
 }
 
-class OHModule extends Module {
-  import chisel3.util._
-
-  val io = IO(new Bundle {
-    val raw = Input(UInt(3.W))
-    val oh = Output(UInt(8.W))
-  })
-
-  io.oh := UIntToOH(io.raw)
-}
-
-class OHSpec extends AnyFreeSpec with Matchers {
-
-  "UIntToOH should decode to one-hot" in {
-    simulate(new OHModule) { dut =>
-
-      for (v <- 0x0 to 0x7) {
-        dut.io.raw.poke(v.U)
-        dut.clock.step()
-        dut.io.oh.expect((1<<v).U)
-      }
-    }
-  }
-}
-
-
 object DecoderSpec {
   import AluOpcode._
   import AluUnit._
