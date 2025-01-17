@@ -15,7 +15,7 @@ class AluSpec extends AnyFreeSpec with Matchers {
   val mask = (bi(1) << n) - 1
 
   def reset(dut: AluTestHarness): Unit = {
-      println("AluTestHarness: reset");
+      // println("AluTestHarness: reset");
       dut.reset.poke(true.B)
       dut.clock.step()
       dut.reset.poke(false.B)
@@ -24,25 +24,36 @@ class AluSpec extends AnyFreeSpec with Matchers {
 
   def exeOp(dut: AluTestHarness, op: AluOpcode): Unit = {
       dut.io.en.poke(true.B)
-      println("AluTestHarness: running " + op);
+      // println("AluTestHarness: running " + op);
       dut.io.opc.poke(op.id.U)
       dut.clock.step()
       dut.io.stall.expect(false.B)
       dut.io.trap.expect(false.B)
   }
 
-  val cons = Seq(AluOpcConb0, AluOpcConb1, AluOpcConb2, AluOpcConb3)
+  val consp = Seq(AluOpcConb0, AluOpcConb1, AluOpcConb2, AluOpcConb3)
+  val consm = Seq(AluOpcConb4, AluOpcConb5, AluOpcConb6, AluOpcConb7)
+
+  def conop(v: Int): AluOpcode = {
+    if (0 <= v) {
+      consp(v)
+    } else {
+      consm(-v-1)
+    }
+  }
+
+  def exeConOp(dut: AluTestHarness, v: Int): Unit = {
+    exeOp(dut, conop(v))
+    dut.io.nTosV.expect(v)
+  }
 
   def exeBinOp(dut: AluTestHarness, lhs: Int, rhs: Int, op: AluOpcode): Unit = {
-    exeOp(dut, cons(lhs))
-    dut.io.nTosV.expect(lhs)
-    exeOp(dut, cons(rhs))
-    dut.io.nTosV.expect(rhs)
+    exeConOp(dut, lhs)
+    exeConOp(dut, rhs)
     exeOp(dut, op)
   }
 
-  def testBinOp(dut: AluTestHarness, lhs: Int, rhs: Int, op: AluOpcode, res: BigInt): Unit = {
-    exeBinOp(dut, lhs, rhs, op)
+  def checkNTos(dut: AluTestHarness, res: BigInt): Unit = {
     // TODO - this is weird... (for a NOOB)
     //   println seems to indicate the expected result, and the stack value at the next
     //     op also seems correct.
@@ -59,67 +70,43 @@ class AluSpec extends AnyFreeSpec with Matchers {
     }
   }
 
+  def testBinOp(dut: AluTestHarness, lhs: Int, rhs: Int, op: AluOpcode, res: BigInt): Unit = {
+    exeBinOp(dut, lhs, rhs, op)
+    checkNTos(dut, res)
+  }
+
   "Alu should execute opcodes" in {
     simulate(new AluTestHarness(n)) { dut =>
 
-      // // Initialise
-      // dut.reset.poke(true.B)
-      // dut.clock.step()
-      // dut.reset.poke(false.B)
-      // dut.clock.step()
+      // Initialise
+      dut.reset.poke(true.B)
+      dut.clock.step()
+      dut.reset.poke(false.B)
+      dut.clock.step()
 
-      // // Check invalid op trapping
-      // for (opc <- 0x00 to 0xff) {
-      //   val opcEnumOpt = try {
-      //     Some(AluOpcode(opc))
-      //   } catch {
-      //     case _: NoSuchElementException => None
-      //   }
-      //   val (inv, spec) = opcEnumOpt match {
-      //     case None => (true, None)
-      //     case Some(opcEnum) => (false, Some(DecoderSpec.spec(opcEnum)))
-      //   }
-      //   //println(f"opc: 0x$opc%2x spec inv / spec = $inv / $spec")
-      //   assert(inv == spec.isEmpty)
+      // Check invalid op trapping
+      for (opc <- 0x00 to 0xff) {
+        val opcEnumOpt = try {
+          Some(AluOpcode(opc))
+        } catch {
+          case _: NoSuchElementException => None
+        }
+        val (inv, spec) = opcEnumOpt match {
+          case None => (true, None)
+          case Some(opcEnum) => (false, Some(DecoderSpec.spec(opcEnum)))
+        }
+        //println(f"opc: 0x$opc%2x spec inv / spec = $inv / $spec")
+        assert(inv == spec.isEmpty)
 
-      //   dut.io.en.poke(true.B)
-      //   dut.io.opc.poke(opc.U)
-      //   dut.clock.step()
-      //   dut.io.stall.expect(false.B)
-      //   dut.io.trap.expect(inv.B)
-      // }
-      
+        dut.io.en.poke(true.B)
+        dut.io.opc.poke(opc.U)
+        dut.clock.step()
+        dut.io.stall.expect(false.B)
+        dut.io.trap.expect(inv.B)
+      }
+
       // Reset
       reset(dut)
-
-      // Run stuff
-      exeOp(dut, AluOpcConb1)
-      dut.io.nTosV.expect(1.U)
-
-      exeOp(dut, AluOpcConb2)
-      dut.io.nTosV.expect(2.U)
-
-      // exeOp(dut, AluOpcAdd)
-      // dut.io.nTosV.expect(3.U) // Hrmmm, println's 3 but expect says it's 4???
-
-      exeOp(dut, AluOpcOr)
-      dut.io.nTosV.expect(3.U)
-
-      exeOp(dut, AluOpcConb2)
-      dut.io.nTosV.expect(2.U)
-
-      exeOp(dut, AluOpcXor)
-      dut.io.nTosV.expect(1.U) // Hrmmm, println's 1 but expect says 2??? Something is wrong :(
-
-      exeOp(dut, AluOpcConb3)
-      dut.io.nTosV.expect(3.U)
-
-      exeOp(dut, AluOpcNop)
-      exeOp(dut, AluOpcNop)
-      exeOp(dut, AluOpcConb2)
-      exeOp(dut, AluOpcNop)
-      exeOp(dut, AluOpcNop)
-      exeOp(dut, AluOpcConb1)
 
       val testValues = for { x <- 0 to 3; y <- 0 to 3} yield (x, y)
 
@@ -151,7 +138,7 @@ class AluSpec extends AnyFreeSpec with Matchers {
       testValues.map { case (lhs, rhs) => {
         testBinOp(dut, lhs, rhs, AluOpcSltu, bi(if ((bi(lhs) & mask) < (bi(rhs) & mask)) 1 else 0))
       }}
-      
+
       //println("                                              hello RPJ nTosV is " + dut.io.nTosV.peek())
       //println("                                              hello RPJ alu nTosV is " + dut.alu.io.nTosV.peek())
     }
