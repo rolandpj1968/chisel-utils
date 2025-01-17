@@ -63,46 +63,22 @@ class AluSpec extends AnyFreeSpec with Matchers {
       exeOp(dut, AluOpcConb1)
       dut.io.nTosV.expect(1.U)
 
-      dut.io.en.poke(true.B)
-      dut.io.opc.poke(AluOpcConb2.id.U)
-      dut.clock.step()
-      dut.io.stall.expect(false.B)
-      dut.io.trap.expect(false.B)
+      exeOp(dut, AluOpcConb2)
       dut.io.nTosV.expect(2.U)
 
-      // dut.io.en.poke(true.B)
-      // dut.io.opc.poke(AluOpcAdd.id.U)
-      // dut.clock.step()
-      // dut.io.stall.expect(false.B)
-      // dut.io.trap.expect(false.B)
+      // exeOp(dut, AluOpcAdd)
       // dut.io.nTosV.expect(3.U) // Hrmmm, println's 3 but expect says it's 4???
 
-      dut.io.en.poke(true.B)
-      dut.io.opc.poke(AluOpcOr.id.U)
-      dut.clock.step()
-      dut.io.stall.expect(false.B)
-      dut.io.trap.expect(false.B)
+      exeOp(dut, AluOpcOr)
       dut.io.nTosV.expect(3.U)
 
-      dut.io.en.poke(true.B)
-      dut.io.opc.poke(AluOpcConb2.id.U)
-      dut.clock.step()
-      dut.io.stall.expect(false.B)
-      dut.io.trap.expect(false.B)
+      exeOp(dut, AluOpcConb2)
       dut.io.nTosV.expect(2.U)
 
-      dut.io.en.poke(true.B)
-      dut.io.opc.poke(AluOpcXor.id.U)
-      dut.clock.step()
-      dut.io.stall.expect(false.B)
-      dut.io.trap.expect(false.B)
+      exeOp(dut, AluOpcXor)
       //dut.io.nTosV.expect(1.U) // Hrmmm, println's 1 but expect says 2??? Something is wrong :(
 
-      dut.io.en.poke(true.B)
-      dut.io.opc.poke(AluOpcConb3.id.U)
-      dut.clock.step()
-      dut.io.stall.expect(false.B)
-      dut.io.trap.expect(false.B)
+      exeOp(dut, AluOpcConb3)
       dut.io.nTosV.expect(3.U)
 
       //println("                                              hello RPJ nTosV is " + dut.io.nTosV.peek())

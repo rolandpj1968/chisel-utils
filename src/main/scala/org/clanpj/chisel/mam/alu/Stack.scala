@@ -21,7 +21,9 @@ class Stack(n: Int, order: Int) extends Module {
     val wEn = Input(Bool())
     val nTosV = Input(UInt(n.W))
     val dITos = Input(UInt(order.W))
+    val iTos = Output(UInt(order.W)) // TODO - just for debug
     val tosV = Output(UInt(n.W))
+    val iNos = Output(UInt(order.W)) // TODO - just for debug
     val nosV = Output(UInt(n.W))
   })
 
@@ -35,7 +37,9 @@ class Stack(n: Int, order: Int) extends Module {
   val stack = Reg(Vec(size, UInt(n.W)))
 
   io.v := 0.U
+  io.iTos := 0.U
   io.tosV := 0.U
+  io.iNos := 0.U
   io.nosV := 0.U
 
   when (io.en) {
@@ -47,8 +51,10 @@ class Stack(n: Int, order: Int) extends Module {
 
     //printf("iTos %d iNos %d\n", iTos, iNos)
 
+    io.iTos := iTos
     io.tosV := stack(iTos)
     // val iNos = iTos - 1.U - see TODO above
+    io.iNos := iNos
     io.nosV := stack(iNos)
 
     val iTosNext = iTos + io.dITos

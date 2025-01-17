@@ -55,7 +55,7 @@ class Alu(n: Int) extends Module {
   stack.io.rEn := aluGenEn && unitOH(UnitStack.id)
   stack.io.i := decoder.io.op
   stack.io.wEn := true.B // TODO remove
-  stack.io.dITos := Mux(decoder.io.gen, 0x1.U, Mux(decoder.io.bin, 0x0.U, ((1<<2)-1).U))
+  stack.io.dITos := Mux(decoder.io.gen, 0x1.U, Mux(decoder.io.bin, ((1<<2)-1).U, 0x0.U))
 
   // Sel[ect] ops take a 3rd argument comprising a (remote) ALU tos
   val sel = !decoder.io.gen && decoder.io.bin && (unitOH(UnitSelz.id) || unitOH(UnitSelnz.id))
@@ -71,8 +71,6 @@ class Alu(n: Int) extends Module {
   src0 := stack.io.nosV
   val src1 = Wire(UInt(n.W))
   src1 := stack.io.tosV
-
-  printf("                                 RPJ: tosV is %d, nosV is %d, dITos is %d\n", stack.io.tosV, stack.io.nosV, stack.io.dITos)
 
   val arithGenEn = en && !decoder.io.gen
 
@@ -121,6 +119,9 @@ class Alu(n: Int) extends Module {
   regfile.io.wV := v
   stack.io.nTosV := v
   io.nTosV := v
+
+  printf("                                 RPJ: tosV[@0x%x] is 0x%x, nosV[@0x%x] is 0x%x, dITos is 0x%x, v is 0x%x, io.nTosV is 0x%x\n", stack.io.iTos, stack.io.tosV, stack.io.iNos, stack.io.nosV, stack.io.dITos, v, io.nTosV)
+
 }
 
 /**
