@@ -49,6 +49,7 @@ class AluSpec extends AnyFreeSpec with Matchers {
     //   However, expect() sees a different value
     //   If, however I save it into a register in the AluTestHarness, then the expected
     //     value emerges next cycle from the (lTosV) register.
+    // dut.io.nTosV.expect(res & mask)
     val nTosV = dut.io.nTosV.peek().litValue
     if (nTosV != (res & mask)) {
       //println("                                             ooops " + op + " (" + lhs + "," + rhs + ") is " + dut.io.nTosV.peek() + " expecting " + res);
@@ -56,7 +57,6 @@ class AluSpec extends AnyFreeSpec with Matchers {
       //println("                                                     after a NOP lTosV is " + dut.io.lTosV.peek())
       dut.io.lTosV.expect(res & mask)
     }
-    //dut.io.nTosV.expect(res)
   }
 
   "Alu should execute opcodes" in {
@@ -122,6 +122,10 @@ class AluSpec extends AnyFreeSpec with Matchers {
       exeOp(dut, AluOpcConb1)
 
       val testValues = for { x <- 0 to 3; y <- 0 to 3} yield (x, y)
+
+      // Binary ops
+
+      // BitsUnit
       testValues.map { case (lhs, rhs) => {
         testBinOp(dut, lhs, rhs, AluOpcAnd, bi(lhs) & bi(rhs))
       }}
@@ -129,10 +133,23 @@ class AluSpec extends AnyFreeSpec with Matchers {
         testBinOp(dut, lhs, rhs, AluOpcOr, bi(lhs) | bi(rhs))
       }}
       testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcXor, bi(lhs) ^ bi(rhs))
+      }}
+      testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcSeq, bi(if (lhs == rhs) 1 else 0))
+      }}
+      // AddUnit
+      testValues.map { case (lhs, rhs) => {
         testBinOp(dut, lhs, rhs, AluOpcAdd, bi(lhs) + bi(rhs))
       }}
       testValues.map { case (lhs, rhs) => {
         testBinOp(dut, lhs, rhs, AluOpcSub, bi(lhs) - bi(rhs))
+      }}
+      testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcSlt, bi(if (lhs < rhs) 1 else 0))
+      }}
+      testValues.map { case (lhs, rhs) => {
+        testBinOp(dut, lhs, rhs, AluOpcSltu, bi(if ((bi(lhs) & mask) < (bi(rhs) & mask)) 1 else 0))
       }}
       
       //println("                                              hello RPJ nTosV is " + dut.io.nTosV.peek())
