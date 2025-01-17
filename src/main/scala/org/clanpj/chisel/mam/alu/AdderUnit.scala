@@ -42,11 +42,11 @@ class AdderUnit(n: Int) extends Module {
     adder.io.y := src1
 
     io.v := adder.io.sum
+    val sameHibitLt = ~(io.src0(n-1) ^ io.src1(n-1)) & adder.io.sum(n-1)
     when (io.op === AdderSltu.id.U) {
-      //io.v := adder.io.cout//adder.io.sum(n-1)
-      io.v := (~io.src0(n-1) & io.src1(n-1)) | (~(io.src0(n-1) ^ io.src1(n-1)) & adder.io.sum(n-1)) // TODO? Check
+      io.v := (~io.src0(n-1) & io.src1(n-1)) | sameHibitLt
     } .elsewhen(io.op === AdderSlt.id.U) {
-      io.v := (io.src0(n-1) & ~io.src1(n-1)) | (~(io.src0(n-1) ^ io.src1(n-1)) & adder.io.sum(n-1)) // TODO? Check
+      io.v := (io.src0(n-1) & ~io.src1(n-1)) | sameHibitLt
     }
   }
 }
