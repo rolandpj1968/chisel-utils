@@ -6,6 +6,7 @@ import chisel3.util._
 import _root_.circt.stage.ChiselStage
 
 object AluOpcode extends Enumeration {
+  type AluOpcode = Value
 
   /////////////////////////////////////////////////////////////////
 

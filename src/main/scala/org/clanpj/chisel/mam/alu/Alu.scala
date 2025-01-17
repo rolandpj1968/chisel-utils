@@ -72,6 +72,8 @@ class Alu(n: Int) extends Module {
   val src1 = Wire(UInt(n.W))
   src1 := stack.io.tosV
 
+  printf("                                 RPJ: tosV is %d, nosV is %d, dITos is %d\n", stack.io.tosV, stack.io.nosV, stack.io.dITos)
+
   val arithGenEn = en && !decoder.io.gen
 
   val adderUnit = Module(new AdderUnit(n))
@@ -80,6 +82,8 @@ class Alu(n: Int) extends Module {
   adderUnit.io.src0 := src0
   adderUnit.io.src1 := src1
   adderUnit.io.bin := decoder.io.bin
+
+  //printf("                                     RPJ: adderUnit.io.en is %d, adderUnit.io.v is %d\n", adderUnit.io.en, adderUnit.io.v)
 
   val bitsUnit = Module(new BitsUnit(n))
   bitsUnit.io.en := arithGenEn && unitOH(UnitBits.id)
@@ -111,6 +115,8 @@ class Alu(n: Int) extends Module {
 
   val v = Wire(UInt(n.W))
   v := vGen | vArith
+
+  //printf("                                        RPJ: vGen is %d, vArith is %d, v is %d\n", vGen, vArith, v) 
 
   regfile.io.wV := v
   stack.io.nTosV := v

@@ -12,6 +12,8 @@ class AluTestHarness(n: Int) extends Module {
     val en = Input(Bool())
     val opc = Input(UInt(8.W))
 
+    val nTosV = Output(UInt(n.W))
+    val stall = Output(Bool())
     val trap = Output(Bool())
   })
 
@@ -20,6 +22,8 @@ class AluTestHarness(n: Int) extends Module {
   alu.io.en := io.en
   alu.io.opc := io.opc
 
+  io.nTosV := alu.io.nTosV
+  io.stall := alu.io.stall
   io.trap := alu.io.trap
 
   // emulate AluMamGenUnit
@@ -32,4 +36,7 @@ class AluTestHarness(n: Int) extends Module {
       is (UnitConb0.id.U) { alu.io.mamV := conb0(alu.io.mamOp) }
     }
   }
+
+  //printf("                                          RPJ: alu.io.nTosV is %d, io.nTosV is %d\n", alu.io.nTosV, io.nTosV)
+
 }
