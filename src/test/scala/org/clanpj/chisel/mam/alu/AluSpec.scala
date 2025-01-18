@@ -75,9 +75,9 @@ class AluSpec extends AnyFreeSpec with Matchers {
     // dut.io.nTosV.expect(res & mask)
     val nTosV = dut.io.nTosV.peek().litValue
     if (nTosV != (res & mask)) {
-      println("                                             ooops result is " + dut.io.nTosV.peek() + " expecting " + (res & mask));
+      //println("                                             ooops result is " + dut.io.nTosV.peek() + " expecting " + (res & mask));
       exeOp(dut, AluOpcNop)
-      println("                                                     after a NOP lTosV is " + dut.io.lTosV.peek())
+      //println("                                                     after a NOP lTosV is " + dut.io.lTosV.peek())
       dut.io.lTosV.expect(res & mask)
     }
   }
@@ -162,6 +162,9 @@ class AluSpec extends AnyFreeSpec with Matchers {
 
       testValuesX2.map { case (v1, v2, v3) => {
         testBinOpX2(dut, v1, v2, v3, AluOpcAdd, V(v1) + V(v2) + V(v3))
+      }}
+      testValuesX2.map { case (v1, v2, v3) => {
+        testBinOpX2(dut, v1, v2, v3, AluOpcXor, V(v1) ^ V(v2) ^ V(v3))
       }}
 
       //println("                                              hello RPJ nTosV is " + dut.io.nTosV.peek())

@@ -123,7 +123,7 @@ class Alu(n: Int) extends Module {
   io.nop := decoder.io.nop
   io.nTosV := v
 
-  printf("                                 RPJ: tosV[@0x%x] is 0x%x, nosV[@0x%x] is 0x%x, dITos is 0x%x, v is 0x%x, io.nTosV is 0x%x\n", stack.io.iTos, stack.io.tosV, stack.io.iNos, stack.io.nosV, stack.io.dITos, v, io.nTosV)
+  //printf("                                 RPJ: tosV[@0x%x] is 0x%x, nosV[@0x%x] is 0x%x, dITos is 0x%x, v is 0x%x, io.nTosV is 0x%x\n", stack.io.iTos, stack.io.tosV, stack.io.iNos, stack.io.nosV, stack.io.dITos, v, io.nTosV)
 
 }
 
