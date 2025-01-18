@@ -56,6 +56,15 @@ class AluSpec extends AnyFreeSpec with Matchers {
     exeOp(dut, op)
   }
 
+  def exeBinOpX2(dut: AluTestHarness, v1: Int, v2: Int, v3: Int, op: AluOpcode): Unit = {
+    println("AluTestHarness testing " + op + "(" + v1 + ", " + v2 + ", " + v3 + ")")
+    exeConOp(dut, v1)
+    exeConOp(dut, v2)
+    exeConOp(dut, v3)
+    exeOp(dut, op)
+    exeOp(dut, op)
+  }
+
   def checkNTos(dut: AluTestHarness, res: BigInt): Unit = {
     // TODO - this is weird... (for a NOOB)
     //   println seems to indicate the expected result, and the stack value at the next
@@ -66,15 +75,20 @@ class AluSpec extends AnyFreeSpec with Matchers {
     // dut.io.nTosV.expect(res & mask)
     val nTosV = dut.io.nTosV.peek().litValue
     if (nTosV != (res & mask)) {
-      //println("                                             ooops " + op + " (" + lhs + "," + rhs + ") is " + dut.io.nTosV.peek() + " expecting " + res);
+      println("                                             ooops result is " + dut.io.nTosV.peek() + " expecting " + (res & mask));
       exeOp(dut, AluOpcNop)
-      //println("                                                     after a NOP lTosV is " + dut.io.lTosV.peek())
+      println("                                                     after a NOP lTosV is " + dut.io.lTosV.peek())
       dut.io.lTosV.expect(res & mask)
     }
   }
 
   def testBinOp(dut: AluTestHarness, lhs: Int, rhs: Int, op: AluOpcode, res: BigInt): Unit = {
     exeBinOp(dut, lhs, rhs, op)
+    checkNTos(dut, res)
+  }
+
+  def testBinOpX2(dut: AluTestHarness, v1: Int, v2: Int, v3: Int, op: AluOpcode, res: BigInt): Unit = {
+    exeBinOpX2(dut, v1, v2, v3, op)
     checkNTos(dut, res)
   }
 
@@ -143,6 +157,12 @@ class AluSpec extends AnyFreeSpec with Matchers {
       }}
 
       // Binary ops twice
+
+      val testValuesX2 = for { x <- -4 to 3; y <- -4 to 3; z <- -4 to 3} yield (x, y, z)
+
+      testValuesX2.map { case (v1, v2, v3) => {
+        testBinOpX2(dut, v1, v2, v3, AluOpcAdd, V(v1) + V(v2) + V(v3))
+      }}
 
       //println("                                              hello RPJ nTosV is " + dut.io.nTosV.peek())
       //println("                                              hello RPJ alu nTosV is " + dut.alu.io.nTosV.peek())
