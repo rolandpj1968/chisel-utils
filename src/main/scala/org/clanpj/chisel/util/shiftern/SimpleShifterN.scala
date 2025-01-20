@@ -30,7 +30,7 @@ class SimpleShifterN(n: Int) extends ShifterN(n) {
       }
     }
   }
-  printf("simple-shiftern: x %d y %d left %d arith %d -> v %d\n", io.x, io.y, io.left, io.arith, io.v)
+  //printf("simple-shiftern: x %d y %d left %d arith %d -> v %d\n", io.x, io.y, io.left, io.arith, io.v)
 
   def desc = "simple" + n
 }
