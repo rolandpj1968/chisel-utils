@@ -24,4 +24,5 @@ abstract class ShifterN(n: Int) extends Module {
 
 object ShifterN {
   def simple(n: Int) = new SimpleShifterN(n)
+  def log(n: Int) = new LogShifterN(n)
 }

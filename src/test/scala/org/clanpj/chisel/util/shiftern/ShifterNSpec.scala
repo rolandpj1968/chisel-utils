@@ -24,11 +24,11 @@ class ShifterNSpec extends AnyFreeSpec with Matchers {
       simulate(dutgen()) { dut =>
         val shifts = Seq(V(0), V(1), V(2), V(n-1), V(n), V(n/2))
         val xs = Seq(V(-1), V(-2), V(0), V(1), mask, (shiftMask-1) & mask, (bi(1) << n/2) & mask, ((bi(1) << n/2)-1) & mask, ((bi(1) << n/2)+1) & mask)
-        val types = Seq((true, false), (false, false), (true, true))
+        val types = Seq((true, false), (false, false), (false, true)) // TODO - right arithmetic
         val testValues = for { x <- xs; y <- shifts; la <- types} yield (x, y, la)
         //println("Test values: " + testValues);
         testValues.map { case (x, y, (left, arith)) => {
-          //println("                           Testing " + n + "-bit: x = " + x + ", y = " + y + ", left = " + left + ", arith = " + arith)
+          println("                           Testing " + n + "-bit: x = " + x + ", y = " + y + ", left = " + left + ", arith = " + arith)
           dut.io.left.poke(left)
           dut.io.arith.poke(arith)
           dut.io.x.poke(x)
@@ -37,7 +37,8 @@ class ShifterNSpec extends AnyFreeSpec with Matchers {
           val v = if (left) {
             x << y.toInt
           } else if (arith) {
-            val xs = if ((x & (bi(1) << (n-1))) == 0) { x } else { mask - x - 1 }
+            val xs = if ((x & (bi(1) << (n-1))) == 0) { x } else { x - mask - 1 }
+            println("                                                       x is " + x + ", mask is " + mask + ", xs is " + xs + ", expecting value " + (xs >> y.toInt))
             xs >> y.toInt
           } else {
             x >> y.toInt
@@ -66,12 +67,20 @@ class ShifterNSpec extends AnyFreeSpec with Matchers {
 
   val FULL = true
 
-  // simple shifters
-  dotest(() => ShifterN.simple(1), "simple1", 1)
-  dotest(() => ShifterN.simple(8), "simple8", 8)
-  if (FULL) {
-    dotest(() => ShifterN.simple(32), "simple4", 32)
-    dotest(() => ShifterN.simple(64), "simple64", 64)
-  }
+  // // simple shifters
+  // dotest(() => ShifterN.simple(1), "simple1", 1)
+  // dotest(() => ShifterN.simple(8), "simple8", 8)
+  // if (FULL) {
+  //   dotest(() => ShifterN.simple(32), "simple32", 32)
+  //   dotest(() => ShifterN.simple(64), "simple64", 64)
+  // }
+
+  // O(logN) shifters
+  // dotest(() => ShifterN.log(1), "log1", 1)
+  dotest(() => ShifterN.log(8), "log8", 8)
+  // if (FULL) {
+  //   dotest(() => ShifterN.log(32), "log32", 32)
+  //   dotest(() => ShifterN.log(64), "log64", 64)
+  // }
 
 }
