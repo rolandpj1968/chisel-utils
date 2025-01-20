@@ -1,4 +1,4 @@
-package org.clanpj.chisel.fulladdern
+package org.clanpj.chisel.util.fulladdern
 
 import chisel3._
 import chisel3.experimental.BundleLiterals._

@@ -3,8 +3,8 @@ package org.clanpj.chisel.mam.alu
 import chisel3._
 import chisel3.util._
 
-import org.clanpj.chisel.fulladdern.FullAdderN
-import org.clanpj.chisel.fulladdern.FullAdderN._
+import org.clanpj.chisel.util.fulladdern.FullAdderN
+import org.clanpj.chisel.util.fulladdern.FullAdderN._
 
 class AdderUnit(n: Int) extends Module {
   import AdderOp._
