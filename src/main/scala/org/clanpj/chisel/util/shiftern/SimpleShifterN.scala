@@ -14,7 +14,7 @@ class SimpleShifterN(n: Int) extends ShifterN(n) {
   val sign = io.x(n-1)
 
   when (over) {
-    when (io.left) {
+    when (io.left || !io.arith) {
       io.v := 0.U
     } otherwise {
       io.v := Fill(n, sign)
@@ -24,13 +24,13 @@ class SimpleShifterN(n: Int) extends ShifterN(n) {
       io.v := io.x << shift
     } otherwise {
       when (io.arith) {
-        io.v := io.x.asSInt >> shift
+        io.v := (io.x.asSInt >> shift).asUInt
       } otherwise {
         io.v := io.x >> shift
       }
     }
   }
-  //printf("simple-shiftern: x %d y %d left %d arith %d -> v %d\n", io.x, io.y, io.left, io.arith, io.v)
+  printf("simple-shiftern: x %d y %d left %d arith %d -> v %d\n", io.x, io.y, io.left, io.arith, io.v)
 
   def desc = "simple" + n
 }
