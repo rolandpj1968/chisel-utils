@@ -7,12 +7,12 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import scala.util.Random
 
-class Sha256RoundSpec extends AnyFreeSpec with Matchers {
+class Sha256Spec extends AnyFreeSpec with Matchers {
 
   def bi(i: Long) = BigInt(i)
 
-  "Sha256Round should be generated" in {
-    simulate(new Sha256Round(0, false)) { dut =>
+  "Sha256core should be generated" in {
+    simulate(new Sha256Core(false)) { dut =>
 
       // Initialise regs
       dut.reset.poke(true.B)
