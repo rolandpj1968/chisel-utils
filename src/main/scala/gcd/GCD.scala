@@ -35,12 +35,12 @@ class GCD extends Module {
   io.outputValid := y === 0.U
 }
 
-/**
- * Generate Verilog sources and save it in file GCD.v
- */
-object GCD extends App {
-  ChiselStage.emitSystemVerilogFile(
-    new GCD,
-    firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info")
-  )
-}
+// /**
+//  * Generate Verilog sources and save it in file GCD.v
+//  */
+// object GCD extends App {
+//   ChiselStage.emitSystemVerilogFile(
+//     new GCD,
+//     firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info")
+//   )
+// }
