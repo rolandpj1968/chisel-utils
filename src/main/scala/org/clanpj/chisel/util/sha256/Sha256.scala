@@ -29,48 +29,13 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
 
   assert(0 <= round && round < 64)
 
-  val in1 = IO(Input(new State))
-  val out1 = IO(Output(new State))
-
-  // TODO - really need to work out Bundles, Wires, Input, Output :(
-  // val in = IO(new Bundle {
-  //   val w = Input(Vec(32, UInt(32.W)))
-  //   val a = Input(UInt(32.W))
-  //   val b = Input(UInt(32.W))
-  //   val c = Input(UInt(32.W))
-  //   val d = Input(UInt(32.W))
-  //   val e = Input(UInt(32.W))
-  //   val f = Input(UInt(32.W))
-  //   val g = Input(UInt(32.W))
-  //   val h = Input(UInt(32.W))
-  // })
-  val out = IO(new Bundle {
-    val w = Output(Vec(32, UInt(32.W)))
-    val a = Output(UInt(32.W))
-    val b = Output(UInt(32.W))
-    val c = Output(UInt(32.W))
-    val d = Output(UInt(32.W))
-    val e = Output(UInt(32.W))
-    val f = Output(UInt(32.W))
-    val g = Output(UInt(32.W))
-    val h = Output(UInt(32.W))
-  })
+  val in = IO(Input(new State))
+  val out = IO(Output(new State))
 
   val s = Wire(new State)
-  s := in1
+  s := in
 
   val (w, a, b, c, d, e, f, g, h) = (s.w, s.a, s.b, s.c, s.d, s.e, s.f, s.g, s.h)
-
-  // val w = in.w
-
-  // val a = in.a
-  // val b = in.b
-  // val c = in.c
-  // val d = in.d
-  // val e = in.e
-  // val f = in.f
-  // val g = in.g
-  // val h = in.h
 
   // msg schedule
   val w1 = Wire(Vec(32, UInt(32.W)))
@@ -95,68 +60,17 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
 
   val (h1, g1, f1, e1, d1, c1, b1, a1) = (g, f, e, d + temp1, c, b, a, temp1 + temp2)
 
-  val tmp = Wire(new State)
-  tmp.w := w1
-
-  tmp.a := a1
-  tmp.b := b1
-  tmp.c := c1
-  tmp.d := d1
-  tmp.e := e1
-  tmp.f := f1
-  tmp.g := g1
-  tmp.h := h1
-
-  val w2 = Wire(Vec(32, UInt(32.W)))
-  val a2 = Wire(UInt(32.W))
-  val b2 = Wire(UInt(32.W))
-  val c2 = Wire(UInt(32.W))
-  val d2 = Wire(UInt(32.W))
-  val e2 = Wire(UInt(32.W))
-  val f2 = Wire(UInt(32.W))
-  val g2 = Wire(UInt(32.W))
-  val h2 = Wire(UInt(32.W))
+  val s1 = Wire(new State)
+  s1.w := w1
+  s1.a := a1; s1.b := b1; s1.c := c1; s1.d := d1; s1.e := e1; s1.f := f1; s1.g := g1; s1.h := h1
 
   if (reg) {
     val sReg = Reg(new State)
-    sReg := tmp
-    out1 := sReg
-
-    val wReg = Reg(Vec(32, UInt(32.W))); w2 := wReg; wReg := w1
-
-    val aReg = Reg(UInt(32.W)); a2 := aReg; aReg := a1
-    val bReg = Reg(UInt(32.W)); b2 := bReg; bReg := b1
-    val cReg = Reg(UInt(32.W)); c2 := cReg; cReg := c1
-    val dReg = Reg(UInt(32.W)); d2 := dReg; dReg := d1
-    val eReg = Reg(UInt(32.W)); e2 := eReg; eReg := e1
-    val fReg = Reg(UInt(32.W)); f2 := fReg; fReg := f1
-    val gReg = Reg(UInt(32.W)); g2 := gReg; gReg := g1
-    val hReg = Reg(UInt(32.W)); h2 := hReg; hReg := h1
+    sReg := s1
+    out := sReg
   } else {
-    out1 := tmp
-
-    w2 := w1
-
-    a2 := a1
-    b2 := b1
-    c2 := c1
-    d2 := d1
-    e2 := e1
-    f2 := f1
-    g2 := g1
-    h2 := h1
+    out := s1
   }
-
-  out.w := w2
-
-  out.a := a2
-  out.b := b2
-  out.c := c2
-  out.d := d2
-  out.e := e2
-  out.f := f2
-  out.g := g2
-  out.h := h2
 }
 
 object Sha256 {
