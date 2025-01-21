@@ -9,6 +9,8 @@ import chisel3.util._
 
 object Sha256Round {
   class State extends Bundle {
+    val valid = Bool()
+
     val w = Vec(32, UInt(32.W))
 
     val a = UInt(32.W)
@@ -20,9 +22,16 @@ object Sha256Round {
     val g = UInt(32.W)
     val h = UInt(32.W)
   }
+
+  def invalidState(): State = {
+    val s = new State
+    s.valid := false.B
+    s
+  }
 }
 
 // For use in fully unrolled SHA256
+// TODO - include a "label", e.g. the nonce
 class Sha256Round(round: Int, reg: Boolean) extends Module {
   import Sha256Round._
   import Sha256._
@@ -61,17 +70,33 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
   val (h1, g1, f1, e1, d1, c1, b1, a1) = (g, f, e, d + temp1, c, b, a, temp1 + temp2)
 
   val s1 = Wire(new State)
+  s1.valid := in.valid
   s1.w := w1
-  s1.a := a1; s1.b := b1; s1.c := c1; s1.d := d1; s1.e := e1; s1.f := f1; s1.g := g1; s1.h := h1
+  s1.a := a1; s1.b := b1; s1.c := c1; s1.d := d1
+  s1.e := e1; s1.f := f1; s1.g := g1; s1.h := h1
 
   if (reg) {
-    val sReg = Reg(new State)
+    val sReg = RegInit(invalidState())
     sReg := s1
     out := sReg
   } else {
     out := s1
   }
 }
+
+// TODO - need pass-thru "label"
+class Sha256Core(reg: Boolean) extends Module {
+  val in = IO(new Bundle {
+    val h = Input(Vec(8, UInt(32.W)))
+    val msg = Input(Vec(16, UInt(32.W)))
+  })
+  val out = IO(new Bundle {
+    val h = Output(Vec(8, UInt(32.W)))
+  })
+
+
+}
+
 
 object Sha256 {
   def bix(s: String) = BigInt(s, 16)
