@@ -33,17 +33,17 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
   val out1 = IO(Output(new State))
 
   // TODO - really need to work out Bundles, Wires, Input, Output :(
-  val in = IO(new Bundle {
-    val w = Input(Vec(32, UInt(32.W)))
-    val a = Input(UInt(32.W))
-    val b = Input(UInt(32.W))
-    val c = Input(UInt(32.W))
-    val d = Input(UInt(32.W))
-    val e = Input(UInt(32.W))
-    val f = Input(UInt(32.W))
-    val g = Input(UInt(32.W))
-    val h = Input(UInt(32.W))
-  })
+  // val in = IO(new Bundle {
+  //   val w = Input(Vec(32, UInt(32.W)))
+  //   val a = Input(UInt(32.W))
+  //   val b = Input(UInt(32.W))
+  //   val c = Input(UInt(32.W))
+  //   val d = Input(UInt(32.W))
+  //   val e = Input(UInt(32.W))
+  //   val f = Input(UInt(32.W))
+  //   val g = Input(UInt(32.W))
+  //   val h = Input(UInt(32.W))
+  // })
   val out = IO(new Bundle {
     val w = Output(Vec(32, UInt(32.W)))
     val a = Output(UInt(32.W))
@@ -56,16 +56,21 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
     val h = Output(UInt(32.W))
   })
 
-  val w = in.w
+  val s = Wire(new State)
+  s := in1
 
-  val a = in.a
-  val b = in.b
-  val c = in.c
-  val d = in.d
-  val e = in.e
-  val f = in.f
-  val g = in.g
-  val h = in.h
+  val (w, a, b, c, d, e, f, g, h) = (s.w, s.a, s.b, s.c, s.d, s.e, s.f, s.g, s.h)
+
+  // val w = in.w
+
+  // val a = in.a
+  // val b = in.b
+  // val c = in.c
+  // val d = in.d
+  // val e = in.e
+  // val f = in.f
+  // val g = in.g
+  // val h = in.h
 
   // msg schedule
   val w1 = Wire(Vec(32, UInt(32.W)))
@@ -92,6 +97,7 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
 
   val tmp = Wire(new State)
   tmp.w := w1
+
   tmp.a := a1
   tmp.b := b1
   tmp.c := c1
