@@ -91,10 +91,40 @@ class Sha256Core(reg: Boolean) extends Module {
     val msg = Input(Vec(16, UInt(32.W)))
   })
   val out = IO(new Bundle {
+    val valid = Output(Bool())
     val h = Output(Vec(8, UInt(32.W)))
   })
 
+  val round = (0 to 63).map(round => Module(new Sha256Round(round, reg)))
 
+  val w0 = Wire(Vec(32, UInt(32.W)))
+  for (i <- 0 to 15) { w0(i) := in.msg(i) }
+  for (i <- 16 to 31) { w0(i) := 0.U }
+
+  val s0 = Wire(new Sha256Round.State)
+  s0.valid := true.B
+  s0.w := w0
+  s0.a := in.h(0)
+  s0.b := in.h(1)
+  s0.c := in.h(2)
+  s0.d := in.h(3)
+  s0.e := in.h(4)
+  s0.f := in.h(5)
+  s0.g := in.h(6)
+  s0.h := in.h(7)
+
+  round(0).in := s0
+  for (i <- 1 to 63) { round(i).in := round(i-1).out }
+
+  out.valid := round(63).out.valid
+  out.h(0) := in.h(0) + round(63).out.a
+  out.h(1) := in.h(1) + round(63).out.b
+  out.h(2) := in.h(2) + round(63).out.c
+  out.h(3) := in.h(3) + round(63).out.d
+  out.h(4) := in.h(4) + round(63).out.e
+  out.h(5) := in.h(5) + round(63).out.f
+  out.h(6) := in.h(6) + round(63).out.g
+  out.h(7) := in.h(7) + round(63).out.h
 }
 
 
