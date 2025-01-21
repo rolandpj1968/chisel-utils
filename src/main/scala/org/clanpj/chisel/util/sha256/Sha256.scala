@@ -7,8 +7,8 @@ package org.clanpj.chisel.util.sha256
 import chisel3._
 import chisel3.util._
 
-// TODO - optional register
-class Sha256Round(round: Int) extends Module {
+// For use in fully unrolled SHA256
+class Sha256Round(round: Int, reg: Boolean) extends Module {
   import Sha256._
 
   assert(0 <= round && round < 64)
@@ -37,34 +37,85 @@ class Sha256Round(round: Int) extends Module {
     val h = Output(UInt(32.W))
   })
 
+  val (xx, yy) = (1, 2)
+
+  val w = in.w
+
+  val a = in.a
+  val b = in.b
+  val c = in.c
+  val d = in.d
+  val e = in.e
+  val f = in.f
+  val g = in.g
+  val h = in.h
+
   // msg schedule
-  out.w := in.w
+  val w1 = w
 
   if (round < 48) {
-    val wm15 = in.w((round+16-15)%32)
+    val wm15 = w((round+16-15)%32)
     val s0 = R(wm15, 7) ^ R(wm15, 18) ^ (wm15 >> 3);
-    val wm2 = in.w((round+16-2)%32)
+    val wm2 = w((round+16-2)%32)
     val s1 = R(wm2, 17) ^ R(wm2, 19) ^ (wm2 >> 10);
-    val wm7 = in.w((round+16-7)%32)
-    out.w((round+16)%32) := in.w(round%32) + s0 + wm7 + s1;
+    val wm7 = w((round+16-7)%32)
+    w1((round+16)%32) := w(round%32) + s0 + wm7 + s1;
   }
 
   // sha256 round
-  val S1 = R(in.e, 6) ^ R(in.e, 11) ^ R(in.e, 25)
-  val ch = (in.e & in.f) ^ ((~in.e) & in.g)
-  val temp1 = in.h + S1 + ch + k(round).U(32.W) + in.w(round%32)
-  val S0 = R(in.a, 2) ^ R(in.a, 13) ^ R(in.a, 22)
-  val maj = (in.a & in.b) ^ (in.a & in.c) ^ (in.b & in.c)
+  val S1 = R(e, 6) ^ R(e, 11) ^ R(e, 25)
+  val ch = (e & f) ^ ((~e) & g)
+  val temp1 = h + S1 + ch + k(round).U(32.W) + w(round%32)
+  val S0 = R(a, 2) ^ R(a, 13) ^ R(a, 22)
+  val maj = (a & b) ^ (a & c) ^ (b & c)
   val temp2 = S0 + maj
 
-  out.h := in.g
-  out.g := in.f
-  out.f := in.e
-  out.e := in.d + temp1
-  out.d := in.c
-  out.c := in.b
-  out.b := in.a
-  out.a := temp1 + temp2
+  val (h1, g1, f1, e1, d1, c1, b1, a1) = (g, f, e, d + temp1, c, b, a, temp1 + temp2)
+
+  val w2 = Wire(Vec(32, UInt(32.W)))
+  val a2 = Wire(UInt(32.W))
+  val b2 = Wire(UInt(32.W))
+  val c2 = Wire(UInt(32.W))
+  val d2 = Wire(UInt(32.W))
+  val e2 = Wire(UInt(32.W))
+  val f2 = Wire(UInt(32.W))
+  val g2 = Wire(UInt(32.W))
+  val h2 = Wire(UInt(32.W))
+
+  if (reg) {
+    val wReg = Reg(Vec(32, UInt(32.W))); w2 := wReg; wReg := w1
+
+    val aReg = Reg(UInt(32.W)); a2 := aReg; aReg := a1
+    val bReg = Reg(UInt(32.W)); b2 := bReg; bReg := b1
+    val cReg = Reg(UInt(32.W)); c2 := cReg; cReg := c1
+    val dReg = Reg(UInt(32.W)); d2 := dReg; dReg := d1
+    val eReg = Reg(UInt(32.W)); e2 := eReg; eReg := e1
+    val fReg = Reg(UInt(32.W)); f2 := fReg; fReg := f1
+    val gReg = Reg(UInt(32.W)); g2 := gReg; gReg := g1
+    val hReg = Reg(UInt(32.W)); h2 := hReg; hReg := h1
+  } else {
+    w2 := w1
+
+    a2 := a1
+    b2 := b1
+    c2 := c1
+    d2 := d1
+    e2 := e1
+    f2 := f1
+    g2 := g1
+    h2 := h1
+  }
+
+  out.w := w2
+
+  out.a := a2
+  out.b := b2
+  out.c := c2
+  out.d := d2
+  out.e := e2
+  out.f := f2
+  out.g := g2
+  out.h := h2
 }
 
 object Sha256 {
