@@ -7,11 +7,30 @@ package org.clanpj.chisel.util.sha256
 import chisel3._
 import chisel3.util._
 
+object Sha256Round {
+  class State extends Bundle {
+    val w = Vec(32, UInt(32.W))
+
+    val a = UInt(32.W)
+    val b = UInt(32.W)
+    val c = UInt(32.W)
+    val d = UInt(32.W)
+    val e = UInt(32.W)
+    val f = UInt(32.W)
+    val g = UInt(32.W)
+    val h = UInt(32.W)
+  }
+}
+
 // For use in fully unrolled SHA256
 class Sha256Round(round: Int, reg: Boolean) extends Module {
+  import Sha256Round._
   import Sha256._
 
   assert(0 <= round && round < 64)
+
+  val in1 = IO(Input(new State))
+  val out1 = IO(Output(new State))
 
   // TODO - really need to work out Bundles, Wires, Input, Output :(
   val in = IO(new Bundle {
@@ -37,8 +56,6 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
     val h = Output(UInt(32.W))
   })
 
-  val (xx, yy) = (1, 2)
-
   val w = in.w
 
   val a = in.a
@@ -51,7 +68,8 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
   val h = in.h
 
   // msg schedule
-  val w1 = w
+  val w1 = Wire(Vec(32, UInt(32.W)))
+  w1 := w
 
   if (round < 48) {
     val wm15 = w((round+16-15)%32)
@@ -72,6 +90,17 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
 
   val (h1, g1, f1, e1, d1, c1, b1, a1) = (g, f, e, d + temp1, c, b, a, temp1 + temp2)
 
+  val tmp = Wire(new State)
+  tmp.w := w1
+  tmp.a := a1
+  tmp.b := b1
+  tmp.c := c1
+  tmp.d := d1
+  tmp.e := e1
+  tmp.f := f1
+  tmp.g := g1
+  tmp.h := h1
+
   val w2 = Wire(Vec(32, UInt(32.W)))
   val a2 = Wire(UInt(32.W))
   val b2 = Wire(UInt(32.W))
@@ -83,6 +112,10 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
   val h2 = Wire(UInt(32.W))
 
   if (reg) {
+    val sReg = Reg(new State)
+    sReg := tmp
+    out1 := sReg
+
     val wReg = Reg(Vec(32, UInt(32.W))); w2 := wReg; wReg := w1
 
     val aReg = Reg(UInt(32.W)); a2 := aReg; aReg := a1
@@ -94,6 +127,8 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
     val gReg = Reg(UInt(32.W)); g2 := gReg; gReg := g1
     val hReg = Reg(UInt(32.W)); h2 := hReg; hReg := h1
   } else {
+    out1 := tmp
+
     w2 := w1
 
     a2 := a1
@@ -119,32 +154,32 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
 }
 
 object Sha256 {
-  def bi(s: String) = BigInt(s)
+  def bix(s: String) = BigInt(s, 16)
 
   def R(v: UInt, n: Int) = Cat(v(n-1, 0), v(32-1, n))
 
   val k = Seq(
-	bi("0x428a2f98"), bi("0x71374491"), bi("0xb5c0fbcf"), bi("0xe9b5dba5"),
-	bi("0x3956c25b"), bi("0x59f111f1"), bi("0x923f82a4"), bi("0xab1c5ed5"),
-	bi("0xd807aa98"), bi("0x12835b01"), bi("0x243185be"), bi("0x550c7dc3"),
-	bi("0x72be5d74"), bi("0x80deb1fe"), bi("0x9bdc06a7"), bi("0xc19bf174"),
-	bi("0xe49b69c1"), bi("0xefbe4786"), bi("0x0fc19dc6"), bi("0x240ca1cc"),
-	bi("0x2de92c6f"), bi("0x4a7484aa"), bi("0x5cb0a9dc"), bi("0x76f988da"),
-	bi("0x983e5152"), bi("0xa831c66d"), bi("0xb00327c8"), bi("0xbf597fc7"),
-	bi("0xc6e00bf3"), bi("0xd5a79147"), bi("0x06ca6351"), bi("0x14292967"),
-	bi("0x27b70a85"), bi("0x2e1b2138"), bi("0x4d2c6dfc"), bi("0x53380d13"),
-	bi("0x650a7354"), bi("0x766a0abb"), bi("0x81c2c92e"), bi("0x92722c85"),
-	bi("0xa2bfe8a1"), bi("0xa81a664b"), bi("0xc24b8b70"), bi("0xc76c51a3"),
-	bi("0xd192e819"), bi("0xd6990624"), bi("0xf40e3585"), bi("0x106aa070"),
-	bi("0x19a4c116"), bi("0x1e376c08"), bi("0x2748774c"), bi("0x34b0bcb5"),
-	bi("0x391c0cb3"), bi("0x4ed8aa4a"), bi("0x5b9cca4f"), bi("0x682e6ff3"),
-	bi("0x748f82ee"), bi("0x78a5636f"), bi("0x84c87814"), bi("0x8cc70208"),
-	bi("0x90befffa"), bi("0xa4506ceb"), bi("0xbef9a3f7"), bi("0xc67178f2"),
+	bix("428a2f98"), bix("71374491"), bix("b5c0fbcf"), bix("e9b5dba5"),
+	bix("3956c25b"), bix("59f111f1"), bix("923f82a4"), bix("ab1c5ed5"),
+	bix("d807aa98"), bix("12835b01"), bix("243185be"), bix("550c7dc3"),
+	bix("72be5d74"), bix("80deb1fe"), bix("9bdc06a7"), bix("c19bf174"),
+	bix("e49b69c1"), bix("efbe4786"), bix("0fc19dc6"), bix("240ca1cc"),
+	bix("2de92c6f"), bix("4a7484aa"), bix("5cb0a9dc"), bix("76f988da"),
+	bix("983e5152"), bix("a831c66d"), bix("b00327c8"), bix("bf597fc7"),
+	bix("c6e00bf3"), bix("d5a79147"), bix("06ca6351"), bix("14292967"),
+	bix("27b70a85"), bix("2e1b2138"), bix("4d2c6dfc"), bix("53380d13"),
+	bix("650a7354"), bix("766a0abb"), bix("81c2c92e"), bix("92722c85"),
+	bix("a2bfe8a1"), bix("a81a664b"), bix("c24b8b70"), bix("c76c51a3"),
+	bix("d192e819"), bix("d6990624"), bix("f40e3585"), bix("106aa070"),
+	bix("19a4c116"), bix("1e376c08"), bix("2748774c"), bix("34b0bcb5"),
+	bix("391c0cb3"), bix("4ed8aa4a"), bix("5b9cca4f"), bix("682e6ff3"),
+	bix("748f82ee"), bix("78a5636f"), bix("84c87814"), bix("8cc70208"),
+	bix("90befffa"), bix("a4506ceb"), bix("bef9a3f7"), bix("c67178f2"),
   )
 
   val h = Seq(
-	bi("0x6a09e667"), bi("0xbb67ae85"), bi("0x3c6ef372"), bi("0xa54ff53a"),
-	bi("0x510e527f"), bi("0x9b05688c"), bi("0x1f83d9ab"), bi("0x5be0cd19"),
+	bix("6a09e667"), bix("bb67ae85"), bix("3c6ef372"), bix("a54ff53a"),
+	bix("510e527f"), bix("9b05688c"), bix("1f83d9ab"), bix("5be0cd19"),
   )
 
 }
