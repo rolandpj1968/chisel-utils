@@ -84,7 +84,7 @@ class Sha256Round(round: Int, reg: Boolean) extends Module {
   }
 }
 
-// TODO - need pass-thru "label"
+// TODO - need pass-thru "label" for registered case
 class Sha256Core(reg: Boolean) extends Module {
   val in = IO(new Bundle {
     val h = Input(Vec(8, UInt(32.W)))
