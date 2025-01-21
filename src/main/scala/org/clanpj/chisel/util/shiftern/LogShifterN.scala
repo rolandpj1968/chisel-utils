@@ -33,7 +33,7 @@ class LogShifterN(n: Int) extends ShifterN(n) {
   } otherwise {
     io.v := Mux(io.left, leftn(0), rightn(0))
   }
-  printf("log-shiftern: x %d y %d left %d arith %d -> v %d\n", io.x, io.y, io.left, io.arith, io.v)
+  //printf("log-shiftern: x %d y %d left %d arith %d -> v %d\n", io.x, io.y, io.left, io.arith, io.v)
 
   def desc = "simple" + n
 }
